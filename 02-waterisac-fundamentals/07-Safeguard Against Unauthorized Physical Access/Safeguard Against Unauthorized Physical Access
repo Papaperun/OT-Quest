@@ -1,0 +1,157 @@
+Why This Matters
+
+Weak physical security completely undermines cybersecurity.
+If an attacker can touch a device, they can often bypass digital protections entirely. Many routers, switches, and OT devices do not care who plugs in — they simply accept the connection. This is why there’s an old saying:
+
+“If you can touch it, you can own it.”
+
+Attackers seek physical access to:
+
+Conduct surveillance
+
+Gather intelligence
+
+Identify wiring, labeling, or network layout
+
+Install malicious devices
+
+Steal passwords or credentials
+
+Access ICS/OT equipment directly
+
+Physical security is the first wall. If it fails, the rest of your cybersecurity stack becomes irrelevant.
+
+1. Access Control: Badges, Gates, and Identity
+
+Badges, keycards, gates, and cameras only work when the gate itself is secure.
+Gate codes should not be common knowledge.
+If automated, codes should be tied to individual users and changed regularly.
+
+Attackers frequently rely on social engineering to bypass physical controls. They may:
+
+Pretend to be a delivery driver
+
+Claim to be an inspector
+
+Tailgate or piggyback behind an employee
+
+Fabricate emergencies
+
+Exploit employees' tendency to be helpful
+
+You’ve personally seen this in action — a coworker falling for an iTunes scam. Attackers will exploit any human weakness.
+
+2. Workstation and Information Security
+
+Even if someone can’t get inside the network room, they may still target exposed information.
+
+Employees should:
+
+Always lock their workstation
+
+Use privacy screens to avoid shoulder-surfing
+
+Secure confidential papers
+
+Avoid writing passwords on sticky notes
+
+Follow a “clean desk” policy
+
+Keep filing cabinets locked
+
+Use headphones for sensitive calls or alarms
+
+Physical access doesn’t require entering the SCADA room.
+Sometimes all an attacker needs is a password taped to a monitor.
+
+3. Physical Penetration Testing
+
+Physical penetration tests exist to do more than test doors and fences. They identify:
+
+Weak entry points
+
+How a physical breach could lead to IT/OT system access
+
+Overlooked environmental factors (snowbanks, construction piles, pallets)
+
+Whether employees challenge unknown individuals
+
+These tests often reveal vulnerabilities created simply by convenience or familiarity.
+
+4. Common Physical Bypass Techniques
+
+Attackers have many tools and tricks to bypass physical security, including:
+
+Sebaceous oil smudges on keypads to guess PINs
+
+Snowbanks / dirt piles / construction materials enabling climbing over fences
+
+Traveler hooks (Shrum tools) to bypass dead-latch locks
+
+Knife bypass tools for certain padlocks
+
+Wafer keys to open warded outdoor generator locks
+
+Double-door tools to engage interior push bars
+
+Thumb-turn (J-tools) to twist interior door knobs
+
+Under-the-door tools to pull down interior door levers
+
+These aren’t hypothetical — these tools cost under $20 and work frighteningly well.
+
+5. Protecting ICS and SCADA Areas
+
+Gaining access to control rooms nearly always means gaining access to:
+
+PLCs
+
+Operator workstations
+
+HMIs
+
+Historian servers
+
+Switches and routers
+
+Engineering workstations
+
+To safeguard these, utilities should:
+
+Lock hard drives and portable media
+
+Store removable media in secured containers
+
+Disable USB ports where possible
+
+Disable unneeded buttons (e.g., power switches)
+
+Use physical block-out devices
+
+Store keys and fobs in secured locations
+
+Attackers frequently plant malicious USBs, waiting for an employee to plug them in. This is not paranoia; it is one of the most common attack vectors.
+
+6. Decommissioned and New Equipment
+
+Security doesn’t end when a device leaves service.
+
+Decommissioned equipment may still contain logs, configs, credentials, or IP mappings
+
+New equipment can be tampered with—an attacker may install malware and “return” the device looking unopened
+
+This is especially dangerous in water utilities where equipment turnover is slow and oversight is limited.
+
+Summary
+
+Physical security failures allow attackers to bypass every digital defense.
+Every utility must assume:
+
+If someone can physically reach a device, they can compromise it.
+
+Human helpfulness will be exploited.
+
+Small oversights create massive risks.
+
+Cybersecurity and physical security are not separate.
+In ICS/OT, they are the same fight.
