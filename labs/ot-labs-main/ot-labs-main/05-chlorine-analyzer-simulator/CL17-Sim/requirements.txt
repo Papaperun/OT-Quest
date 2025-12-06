@@ -1,0 +1,17 @@
+# Chlorine Analyzer Simulator (CL17) - Python Dependencies
+
+# No external packages required for current mock version
+# Tkinter is included with standard Python installation
+
+# If/when integrating with real Modbus:
+# pymodbus>=3.6.0
+
+# If/when adding Flask HTTP server:
+# flask>=3.0.0
+# requests>=2.31.0
+
+# Optional: For enhanced CSV handling
+# pandas>=2.0.0
+
+# Optional: For data visualization
+# matplotlib>=3.7.0
