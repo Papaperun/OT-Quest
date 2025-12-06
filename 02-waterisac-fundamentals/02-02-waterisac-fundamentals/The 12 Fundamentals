@@ -1,0 +1,149 @@
+Chapter 2 Notes — The 12 Fundamentals (Cleaned & Organized)
+🔗 Important Reference Links
+
+(Study later, or use when needed to explore tools and best practices)
+
+CISA Free Cybersecurity Services & Tools
+https://www.cisa.gov/resources-tools/resources/free-cybersecurity-services-and-tools
+
+Fend Tech – Water Sector OT Security Tools
+https://www.fend.tech/water
+
+Owl Cyber Defense – Data Diodes / Unidirectional Gateways
+https://owlcyberdefense.com/learn-about-data-diodes/
+
+Claroty – ICS Security & The Purdue Model
+https://claroty.com/blog/ics-security-the-purdue-model
+
+📌 Why This Chapter Matters
+
+OT connections are rarely avoidable forever.
+Patches, updates, vendor support, repairs, and hardware replacements will eventually require connectivity — and new parts often come with some type of network interface “baked in.”
+
+This chapter covers how to keep necessary connections secure, documented, and controlled so they don’t become unknown vulnerabilities.
+
+🚫 Core Principle: No OT → Public Networks
+
+Never connect OT directly to public networks unless there is no other option.
+
+If it must be done:
+
+Document it clearly
+
+Track who approved it
+
+Note when it should be removed
+
+Make sure it’s not forgotten (this is absolutely “spy movie” material)
+
+📍 Key Concepts
+1. Network Segmentation
+
+Breaking the network into controlled zones to limit exposure and prevent lateral movement.
+
+2. Firewalls
+
+Enforce allowed traffic only.
+
+Should be configured at each boundary between corporate, DMZ, and OT networks.
+
+3. ICS DMZs
+
+A buffer zone between IT and OT.
+
+Allows controlled data flow, monitoring, and secure remote access.
+
+4. VLANs
+
+Logical segmentation inside the network.
+
+Helps isolate systems without adding physical hardware.
+
+5. Unidirectional Gateways / Data Diodes
+
+Hardware that enforces one-way data flow.
+
+Prevents commands or malware from crossing back into the OT side.
+
+6. Purdue Model
+
+A layered model of ICS networks.
+
+You’re already able to mentally map your own system into the layers — this will help you understand exposure, traffic flow, and where to place protections.
+
+🔍 Common Practices to Test for Undesired External Connections
+
+(“Checking for cross-connections”)
+
+Ping
+
+Quick reachability tests between segments.
+
+Netstat
+
+Shows active connections, listening ports, and unexpected traffic.
+
+Network path tracing (traceroute, route print)
+
+Optional tools to understand where packets travel.
+
+Encryption Exposure Test (Thought Exercise)
+
+“Nude vs encrypted” idea:
+Plain text = readable; encrypted = unreadable.
+Might be worth finding simple Modbus or HTTP packets in Wireshark to compare.
+
+🛡 Dragos Recommendations (Summarized)
+Leverage existing infrastructure & expertise
+
+Start with what the facility already has: switches, firewalls, policies, staff knowledge.
+
+Implement an ICS DMZ with a secure jump host
+
+Jump host sits between networks.
+
+All remote access goes through it.
+
+Use Multi-Factor Authentication (MFA)
+
+Especially for anything that touches ICS, VPNs, or jump servers.
+
+Set strict third-party remote access requirements
+
+No open TeamViewer.
+
+No direct vendor access without approval and monitoring.
+
+Monitor & audit all remote-access sessions
+
+Logging, screen recording, or session transcripts.
+
+Jump Servers
+
+An intermediary server in the DMZ.
+
+Reduces attack surface and keeps OT isolated.
+
+VPN (Encrypted data channels)
+
+Properly configured, limited access “slices” to specific internal resources.
+
+SSH
+
+Secure authentication for remote control and file transfer.
+
+Not for casual vendor use — only for controlled operations.
+
+🧪 Your Home Lab / Skill-Building Plan
+Review: Top 20 PLC Coding Practices
+
+Use them to build your home lab more resilient.
+
+Ensures your understanding isn't just theoretical — it’s tied to real-world ICS engineering discipline.
+
+Use OSINT mindset
+
+Think like an attacker analyzing your setup.
+
+“If bad actors know what I know, what do they target next?”
+→ This pushes you to level-up your knowledge and defenses.
