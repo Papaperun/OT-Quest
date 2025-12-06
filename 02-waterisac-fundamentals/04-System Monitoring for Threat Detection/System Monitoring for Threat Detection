@@ -1,0 +1,161 @@
+You can’t defend against what you can’t see.
+🔑 Why This Chapter Matters
+
+System monitoring is essential because:
+
+You don’t know the wendigo is out there unless you’ve been taught what its tracks look like.
+
+Threat detection is the skill of learning the signs:
+
+unusual behavior
+
+abnormal communication
+
+unexpected device activity
+
+patterns that deviate from normal operations
+
+ICS attacks rarely start with explosions — they start with small anomalies.
+
+🇺🇸 2021 ICS Cybersecurity Initiative
+
+This initiative is very recent, which highlights:
+
+The field is still growing
+
+Standards are evolving
+
+Water sector cybersecurity is still catching up
+
+(Your note: “Maybe there is room for Joshua still?” — yes, there is. ICS cybersecurity talent is extremely limited and highly sought after.)
+
+The initiative created a vendor-neutral, government + critical infrastructure coalition focused on:
+
+common standards
+
+detection visibility
+
+practical guidance
+
+reducing attack blind spots
+
+📡 Key Questions of the Initiative
+1. What data acquisition capabilities exist or are planned?
+
+Meaning:
+
+What systems can already collect logs?
+
+What logs will we need in the future?
+
+What tools can pull OT-relevant data?
+
+Includes:
+
+PLC logs
+
+HMI logs
+
+Historian data
+
+Firewall logs
+
+Network traffic captures
+
+Remote access logs
+
+2. What vendors are used across the “system of interest”?
+
+System of Interest (SOI) = the entire environment you’re trying to protect.
+This could include:
+
+All water treatment plants
+
+All pump stations
+
+All SCADA servers
+
+All PLC brands and models
+
+Cloud services
+
+Communications paths
+
+Anything that affects operations
+
+Knowing vendors = knowing attack surfaces.
+
+3. What workforce and capabilities exist or will be needed?
+
+Realistically, most utilities:
+
+have very limited cybersecurity staff
+
+have operators doing 10 jobs at once
+
+have small budgets
+
+are just starting to understand OT monitoring
+
+This is normal — the entire ICS sector is still developing its workforce.
+
+📊 The Monitoring Philosophy
+1. Establish a Baseline
+
+Every ICS system must define its normal:
+
+normal traffic flows
+
+normal PLC cycle times
+
+normal remote access patterns
+
+normal network usage
+
+normal chemical dosing behavior
+
+normal pump runtimes
+
+Think of it like any monitoring system:
+You need a standard before you can detect deviation.
+
+2. Detect Deviation From Baseline
+
+Anything outside the baseline = possible threat.
+
+Your “napalm option” metaphor works —
+meaning:
+If something is way outside normal, it should trigger serious attention.
+
+Examples of anomalies:
+
+PLC suddenly enters program mode
+
+New devices appear on a control network
+
+Remote access at 3am from an unknown laptop
+
+Rapid changes in pump commands
+
+Historian dropping logs unexpectedly
+
+🏢 Why a Utility Needs a Security Operations Function
+
+A utility without a Security Operations System (SOC) lacks the ability to respond properly.
+
+Without monitoring:
+
+Threats go unnoticed
+
+No one sees early attack stages
+
+Incidents take longer to detect, contain, or recover from
+
+Regulators may ask questions later
+
+Insurance claims get messy
+
+This chapter reinforces:
+
+Failing to plan is planning to fail.
+(And ICS failures aren’t just IT issues — they can become public health issues.)
