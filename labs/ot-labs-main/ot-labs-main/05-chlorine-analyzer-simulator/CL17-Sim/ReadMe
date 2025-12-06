@@ -1,0 +1,145 @@
+# Chlorine Analyzer Simulator (CL17)
+
+A realistic chlorine analyzer simulator for training and testing purposes. Simulates a Hach CL17-style chlorine analyzer with color indication, flow tracking, and dosage calculations.
+
+## Features
+
+- **Real-time Color Display**: Visual color-coded chlorine levels (0-10+ mg/L) using DPD-style pink/magenta scale
+- **Realistic Simulation**: 
+  - Diurnal patterns (12-hour cycles)
+  - Sensor warmup periods
+  - Random drift and noise
+  - Periodic cleaning cycles
+  - Measurement variability
+- **Flow & Dosage Tracking**:
+  - Configurable flow rate (MGD - Million Gallons per Day)
+  - Configurable target dosage (mg/L)
+  - Real-time calculation of chlorine usage (lbs/day)
+- **Training Scenarios**:
+  - Normal Operations
+  - Sensor Failure (0 mg/L reading)
+  - High Event (12+ mg/L reading)
+- **Data Logging**: CSV file with timestamped readings, flow, dosage, and calculated usage
+- **Visual Analytics**:
+  - Recent readings list
+  - Mini sparkline chart
+  - Color-coded status indicators
+
+## Requirements
+
+See `requirements.txt` for Python dependencies.
+
+- Python 3.8 or higher
+- Tkinter (usually included with Python)
+
+## Installation
+
+1. Clone or download this repository
+
+2. Install required packages:
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+### Running the Simulator
+
+```bash
+python chlorine-analyzer-simulator.py
+```
+
+### Using the Interface
+
+1. **Color Display**: Shows current chlorine level with color coding
+   - White/Clear: 0-0.05 mg/L
+   - Light Pink: 0.5-1.0 mg/L
+   - Rose/Magenta: 2-4 mg/L
+   - Deep Purple-Pink: 6-8 mg/L
+   - Dark Purple: 10+ mg/L (off-scale)
+
+2. **Flow and Dosage Controls**:
+   - Enter flow rate in MGD (Million Gallons per Day)
+   - Enter target dosage in mg/L
+   - Click "Update" or press Enter to apply changes
+   - Chlorine usage (lbs/day) is calculated automatically using: `Flow × Dosage × 8.34`
+
+3. **Training Mode Buttons**:
+   - **Normal Ops**: Realistic chlorine readings with natural variation
+   - **Sensor Failure**: Simulates sensor malfunction (0 mg/L)
+   - **High Event**: Simulates chlorine spike (12+ mg/L)
+
+4. **Data Display**:
+   - Recent readings list (last 10 values)
+   - Mini sparkline showing trend over last 60 readings
+   - Real-time updates every 2 seconds
+
+### Data Logging
+
+All readings are automatically logged to `chlorine_sim_log.csv` with the following columns:
+
+- `timestamp_iso`: ISO 8601 formatted timestamp
+- `timestamp_unix`: Unix timestamp
+- `mode`: Current operating mode (normal/sensor_failure/high_event)
+- `chlorine_mg_l`: Chlorine reading in mg/L
+- `written_int`: Integer value that would be written to Modbus (mg/L × 10)
+- `flow_mgd`: Current flow rate in MGD
+- `dosage_mg_l`: Current target dosage in mg/L
+- `lbs_per_day`: Calculated chlorine usage in pounds per day
+
+## Configuration
+
+Edit the following constants at the top of `chlorine-analyzer-simulator.py`:
+
+```python
+UPDATE_INTERVAL_MS = 2000   # Update frequency in milliseconds
+LOG_FILE = "chlorine_sim_log.csv"  # Log file name
+HISTORY_LEN = 60            # Number of readings to keep in sparkline
+```
+
+## Modbus Integration
+
+The current version uses a mock Modbus writer that prints values to console. To integrate with actual Modbus:
+
+1. Replace the `ModbusWriter` class with a real Modbus TCP client
+2. Configure `MODBUS_HOST` and `MODBUS_PORT` constants
+3. The simulator writes to register 40001 (holding register at address 0)
+4. Values are scaled: `modbus_value = int(mg_l × 10)`
+
+Example: 4.5 mg/L chlorine = 45 in Modbus register
+
+## Future Enhancements
+
+- Real Modbus TCP/RTU connectivity
+- OPC UA integration for SCADA systems
+- Additional training scenarios (calibration drift, reagent depletion)
+- Historical data viewer
+- Alarm/threshold configuration
+- Multi-analyzer support
+
+## Troubleshooting
+
+**GUI doesn't appear:**
+- Ensure Tkinter is installed: `python -m tkinter`
+- On Linux: `sudo apt-get install python3-tk`
+
+**CSV file not created:**
+- Check write permissions in the current directory
+- Verify disk space is available
+
+**Values seem unrealistic:**
+- Check the simulation parameters in the code
+- Normal readings should range 2-8 mg/L with variation
+- Adjust `base_drift`, `diurnal`, or `noise` parameters as needed
+
+## License
+
+For training and testing purposes only.
+
+## Author
+
+Created for operational technology (OT) lab training and SCADA integration testing.
+
+## Support
+
+For issues or questions, refer to the code comments or create an issue in the repository.
