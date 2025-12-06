@@ -1,0 +1,220 @@
+# 🌊 Turbidity Meter Simulator
+
+A professional training simulator for water turbidity monitoring with Modbus TCP integration. Designed for operator training and system testing without requiring physical hardware.
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Python](https://img.shields.io/badge/python-3.7+-green)
+![License](https://img.shields.io/badge/license-MIT-orange)
+
+## 📋 Overview
+
+This simulator replicates the behavior of a real turbidity meter used in water treatment facilities. It provides realistic readings, visual feedback, and Modbus TCP communication for integration with SCADA systems or training platforms.
+
+**Key Features:**
+- ⚡ Real-time turbidity simulation (NTU readings)
+- 🌧️ Multiple operating scenarios (Normal, Storm, Manual)
+- 📊 Live statistics tracking (Max, Average, Sample count)
+- 📈 Historical sparkline visualization
+- 🔌 Modbus TCP integration (Register 40002)
+- 📝 CSV data logging for analysis
+- 🎨 Professional dark-theme UI
+- 💡 Visual pixel display (each dot = 0.01 NTU)
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.7 or higher
+- pip (Python package manager)
+
+### Installation
+
+1. **Clone or download this repository**
+```bash
+cd turbidity-simulator
+```
+
+2. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+3. **Run the simulator**
+```bash
+python turbidity_simulator.py
+```
+
+## 🎮 Usage
+
+### Operating Modes
+
+**⚡ Normal Ops**
+- Simulates clean water conditions
+- NTU range: 0.03 - 0.15
+- Occasional spikes (2% probability): 1.5 - 5.0 NTU
+- Best for: Standard operator training
+
+**🌧️ Storm Weather**
+- Simulates heavy rainfall/runoff conditions
+- NTU range: 0.15 - 0.60
+- Frequent spikes (10% probability): 0.8 - 4.0 NTU
+- Best for: Emergency response training
+
+**✋ Manual Entry**
+- Allows precise NTU value input
+- Range: 0.00 - 99.99 NTU
+- Best for: Specific scenario testing
+
+### Visual Indicators
+
+**Status Colors:**
+- 🟢 Green (0.00 - 0.29 NTU): System Normal
+- 🟠 Orange (0.30 - 0.99 NTU): High Turbidity Warning
+- 🔴 Red (≥ 1.00 NTU): Emergency Shutdown
+
+**Pixel Display:**
+- Each dot (`.`) represents 0.01 NTU
+- Example: `[ . . . ]` = 0.03 NTU
+- Example: `[ .......... ]` = 0.10 NTU
+
+## 🔌 Modbus Integration
+
+### Configuration
+Edit the configuration section at the top of `turbidity_simulator.py`:
+
+```python
+MODBUS_HOST = "127.0.0.1"   # Modbus slave IP address
+MODBUS_PORT = 5020          # Modbus TCP port
+REGISTER_ADDR = 40002       # Holding register (turbidity)
+```
+
+### Data Format
+- **Register:** 40002 (holding register)
+- **Scaling:** NTU × 100 (integer value)
+- **Example:** 0.45 NTU → writes value 45
+- **Range:** 0 - 9999 (0.00 - 99.99 NTU)
+
+### Mock Mode (Default)
+By default, the simulator uses a mock Modbus client that prints to the console:
+```
+✅ Would write: 0.45 NTU (value=45) to register 40002
+```
+
+### Enabling Real Modbus
+To connect to an actual Modbus TCP server, replace the `ModbusWriter` class with the real implementation (commented in the code).
+
+## 📊 Data Logging
+
+All readings are automatically logged to `turbidity_sim_log.csv` with the following format:
+
+| timestamp_iso | timestamp_unix | mode | ntu | written_int |
+|--------------|----------------|------|-----|-------------|
+| 2024-12-06T15:30:45Z | 1733498445 | normal | 0.08 | 8 |
+| 2024-12-06T15:30:46Z | 1733498446 | storm | 0.42 | 42 |
+
+## 🎯 Training Scenarios
+
+### Scenario 1: Normal Operations
+1. Start in "Normal Ops" mode
+2. Observe typical fluctuations (0.03-0.15 NTU)
+3. Watch for occasional cleaning spikes
+4. Monitor statistics and trends
+
+### Scenario 2: Weather Event Response
+1. Switch to "Storm Weather" mode
+2. Observe elevated baseline readings
+3. Practice identifying warning thresholds
+4. Document response procedures
+
+### Scenario 3: System Calibration
+1. Use "Manual Entry" mode
+2. Input known reference values (0.02, 0.50, 1.00, etc.)
+3. Verify display accuracy
+4. Test alarm thresholds
+
+### Scenario 4: Emergency Shutdown
+1. Manually enter 1.50 NTU
+2. Observe emergency status indicators
+3. Practice shutdown procedures
+4. Return to normal operations
+
+## ⚙️ Configuration Options
+
+Edit these constants in the code for customization:
+
+```python
+UPDATE_INTERVAL_MS = 500     # Update frequency (milliseconds)
+HISTORY_LEN = 100            # Number of historical points
+LOG_FILE = "turbidity_sim_log.csv"  # Log file name
+```
+
+## 🛠️ Troubleshooting
+
+**Window too large for screen?**
+- Adjust the geometry in code: `self.root.geometry("580x680")`
+- Make fonts smaller if needed
+
+**Modbus connection errors?**
+- Verify MODBUS_HOST and MODBUS_PORT settings
+- Check that Modbus server is running
+- Ensure firewall allows connection
+
+**CSV log not writing?**
+- Check file permissions in current directory
+- Verify disk space available
+
+## 📝 File Structure
+
+```
+turbidity-simulator/
+├── turbidity_simulator.py    # Main application
+├── requirements.txt           # Python dependencies
+├── README.md                  # This file
+└── turbidity_sim_log.csv     # Generated log file
+```
+
+## 🤝 Contributing
+
+This is a training tool - feel free to modify and adapt for your specific needs!
+
+Suggested improvements:
+- Add more weather scenarios
+- Implement trend analysis
+- Create custom alarm logic
+- Add network communication protocols
+- Build multi-sensor dashboard
+
+## 📜 License
+
+MIT License - Free to use for training and educational purposes.
+
+## ⚠️ Disclaimer
+
+**FOR TRAINING USE ONLY**
+
+This simulator is designed for operator training and system testing. It should not be used as a replacement for actual water quality monitoring equipment in production environments.
+
+## 🙋 Support
+
+For questions or issues:
+1. Check the troubleshooting section
+2. Review the code comments
+3. Test in mock mode before connecting to real systems
+
+## 📚 Additional Resources
+
+**Turbidity Standards:**
+- WHO Guidelines for Drinking Water Quality
+- EPA Water Treatment Standards
+- Local regulatory requirements
+
+**Related Technologies:**
+- Modbus TCP Protocol Specification
+- SCADA System Integration
+- Water Quality Monitoring Best Practices
+
+---
+
+**Version History:**
+- v1.0.0 (2024-12-06): Initial release with Normal/Storm/Manual modes
+
+Built with ❤️ for water treatment professionals
