@@ -1,0 +1,388 @@
+#!/usr/bin/env python3
+"""
+Chlorine Color Simulator (CL17/DR300 style) with Flow & Dosage Tracking
+
+New Features:
+- Flow rate input (MGD)
+- Dosage input (mg/L)
+- Calculates lbs/day of chlorine needed
+- Logs flow, dosage, and lbs/day to CSV
+"""
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+import math
+import random
+import time
+import threading
+import csv
+import collections
+
+# -------------- Configuration --------------
+MODBUS_HOST = "127.0.0.1"
+MODBUS_PORT = 5020
+REGISTER_ADDR = 40001
+UPDATE_INTERVAL_MS = 2000
+LOG_FILE = "chlorine_sim_log.csv"
+HISTORY_LEN = 60
+
+# -------------- Utility functions --------------
+def mg_to_rgb_hex(mg):
+    """Convert mg/L to color (pink/magenta scale)"""
+    mg = max(0.0, min(10.0, mg))
+    if mg <= 0.05: return "#ffffff"      # clear
+    elif mg <= 0.5: return "#fff0f8"     # very faint pink
+    elif mg <= 1.0: return "#ffe0f0"     # light pink
+    elif mg <= 2.0: return "#ffc0e8"     # rose
+    elif mg <= 4.0: return "#ff90d8"     # medium magenta
+    elif mg <= 6.0: return "#ff60c8"     # strong magenta
+    elif mg <= 8.0: return "#e040b0"     # deep purple-pink
+    else:           return "#c000a0"     # dark purple (off-scale high)
+
+
+# -------------- Mock Modbus wrapper --------------
+class ModbusWriter:
+    def __init__(self, host, port, register_40001):
+        print(f"[Mock Modbus] Initialized (not actually connecting)")
+        
+    def connect(self):
+        return True
+        
+    def write_mg_l(self, mg_l):
+        value = int(round(mg_l * 10))
+        print(f"✅ Would write: {mg_l:.2f} mg/L (value={value}) to register 40001")
+        return True
+        
+    def close(self):
+        pass
+
+
+# -------------- Simulator Core --------------
+class ChlorineSimulator:
+    def __init__(self, modbus_writer):
+        self.modbus = modbus_writer
+        self.mode = "normal"
+        self.start_time = time.time()
+        self.history = collections.deque(maxlen=HISTORY_LEN)
+        self.log_file = LOG_FILE
+
+        # Flow and Dosage tracking
+        self.flow_mgd = 5.0  # Default 5 MGD
+        self.dosage_mgl = 7.0  # Default 7 mg/L
+
+        # CL17-like state
+        self.warmup_seconds = 60.0
+        self.base_drift = 0.0
+        self.last_clean_time = time.time()
+        self.next_clean_interval = random.uniform(600, 1800)
+
+        # Initialize log file header
+        try:
+            with open(self.log_file, "a", newline="") as f:
+                writer = csv.writer(f)
+                if f.tell() == 0:
+                    writer.writerow([
+                        "timestamp_iso", "timestamp_unix", "mode", 
+                        "chlorine_mg_l", "written_int", 
+                        "flow_mgd", "dosage_mg_l", "lbs_per_day"
+                    ])
+        except Exception as e:
+            print(f"[Log] Could not initialize log file: {e}")
+
+    def set_flow(self, flow_mgd):
+        """Set flow rate in MGD"""
+        self.flow_mgd = max(0.0, float(flow_mgd))
+
+    def set_dosage(self, dosage_mgl):
+        """Set target dosage in mg/L"""
+        self.dosage_mgl = max(0.0, float(dosage_mgl))
+
+    def calculate_lbs_per_day(self):
+        """Calculate lbs of chlorine per day: Flow (MGD) × Dosage (mg/L) × 8.34"""
+        return self.flow_mgd * self.dosage_mgl * 8.34
+
+    def compute_normal_value(self, now):
+        """Produce realistic chlorine reading"""
+        elapsed = now - self.start_time
+
+        # Diurnal-ish wave
+        diurnal = 4.0 + 2.5 * math.sin((elapsed / 3600.0) * (2 * math.pi / 12.0))
+
+        # Slow drift
+        if random.random() < 0.05:
+            self.base_drift += random.uniform(-0.05, 0.05)
+            self.base_drift = max(-1.5, min(1.5, self.base_drift))
+
+        # Warmup ramp
+        if elapsed < self.warmup_seconds:
+            warmup_factor = elapsed / self.warmup_seconds
+        else:
+            warmup_factor = 1.0
+
+        # Cleaning dip
+        since_last_clean = now - self.last_clean_time
+        cleaning = 0.0
+        if since_last_clean > self.next_clean_interval:
+            dip_depth = random.uniform(0.8, 2.0)
+            dip_duration = random.uniform(30, 120)
+            phase = min(1.0, (since_last_clean - self.next_clean_interval) / dip_duration)
+            cleaning = -dip_depth * (1.0 - phase)
+            if phase >= 1.0:
+                self.last_clean_time = now
+                self.next_clean_interval = random.uniform(600, 1800)
+                cleaning = 0.0
+
+        # Measurement noise
+        noise = random.uniform(-0.25, 0.25)
+
+        mg = (diurnal + self.base_drift + cleaning) * warmup_factor + noise
+        mg = max(0.0, min(12.0, mg))
+        return mg
+
+    def step(self):
+        """Compute current mg/L, write to Modbus, log, return data"""
+        now = time.time()
+        
+        if self.mode == "normal":
+            mg = self.compute_normal_value(now)
+        elif self.mode == "sensor_failure":
+            mg = 0.00
+        elif self.mode == "high_event":
+            mg = 12.0
+        else:
+            mg = self.compute_normal_value(now)
+
+        self.history.append((now, mg))
+
+        # Write to Modbus
+        ok = self.modbus.write_mg_l(mg)
+
+        # Calculate lbs/day
+        lbs_day = self.calculate_lbs_per_day()
+
+        # Log entry
+        try:
+            with open(self.log_file, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
+                    int(now), 
+                    self.mode, 
+                    f"{mg:.2f}", 
+                    int(round(mg * 10)),
+                    f"{self.flow_mgd:.2f}",
+                    f"{self.dosage_mgl:.2f}",
+                    f"{lbs_day:.2f}"
+                ])
+        except Exception as e:
+            print(f"[Log] write failed: {e}")
+
+        return mg, ok, lbs_day
+
+    def set_mode(self, mode_name):
+        if mode_name not in ("normal", "sensor_failure", "high_event"):
+            raise ValueError("invalid mode")
+        if self.mode != mode_name and mode_name == "normal":
+            self.start_time = time.time()
+        self.mode = mode_name
+
+
+# -------------- GUI --------------
+class App:
+    def __init__(self, root, sim: ChlorineSimulator):
+        self.root = root
+        self.sim = sim
+        self.root.title("Chlorine Analyzer Simulator — Training Only")
+        self.root.configure(bg="black")
+        self.running = True
+
+        # Canvas showing color patch
+        self.canvas = tk.Canvas(root, width=400, height=200, bg="#ffffff", highlightthickness=2)
+        self.canvas.pack(padx=12, pady=(12, 4))
+
+        # Value display
+        self.value_label = tk.Label(root, text="0.00 mg/L", font=("Arial", 24, "bold"), fg="white", bg="black")
+        self.value_label.pack(pady=(4, 2))
+
+        # Status / Modbus indicator
+        self.status_label = tk.Label(root, text="Status: Initializing...", font=("Arial", 10), fg="yellow", bg="black")
+        self.status_label.pack()
+
+        # Flow and Dosage controls
+        controls_frame = tk.Frame(root, bg="black")
+        controls_frame.pack(pady=8)
+
+        # Flow
+        tk.Label(controls_frame, text="Flow (MGD):", fg="white", bg="black", font=("Arial", 10)).grid(row=0, column=0, padx=5, sticky="e")
+        self.flow_entry = tk.Entry(controls_frame, width=10, font=("Arial", 10))
+        self.flow_entry.insert(0, "5.0")
+        self.flow_entry.grid(row=0, column=1, padx=5)
+        self.flow_entry.bind('<Return>', self.update_flow_dosage)
+
+        # Dosage
+        tk.Label(controls_frame, text="Dosage (mg/L):", fg="white", bg="black", font=("Arial", 10)).grid(row=0, column=2, padx=5, sticky="e")
+        self.dosage_entry = tk.Entry(controls_frame, width=10, font=("Arial", 10))
+        self.dosage_entry.insert(0, "7.0")
+        self.dosage_entry.grid(row=0, column=3, padx=5)
+        self.dosage_entry.bind('<Return>', self.update_flow_dosage)
+
+        # Update button
+        update_btn = tk.Button(controls_frame, text="Update", command=self.update_flow_dosage, bg="#4CAF50", fg="white")
+        update_btn.grid(row=0, column=4, padx=5)
+
+        # Calculated lbs/day display
+        self.lbs_label = tk.Label(root, text="Chlorine: 0.00 lbs/day", font=("Arial", 12, "bold"), fg="#00ff88", bg="black")
+        self.lbs_label.pack(pady=(0, 8))
+
+        # Mode buttons
+        btn_frame = tk.Frame(root, bg="black")
+        btn_frame.pack(pady=8)
+
+        self.normal_btn = tk.Button(btn_frame, text="Normal Ops", command=self.set_normal, bg="#2e8b57", fg="white")
+        self.normal_btn.pack(side=tk.LEFT, padx=4)
+
+        self.failure_btn = tk.Button(btn_frame, text="Training: Sensor Failure", command=self.set_failure, bg="#cc5500", fg="white")
+        self.failure_btn.pack(side=tk.LEFT, padx=4)
+
+        self.high_btn = tk.Button(btn_frame, text="Training: High Event", command=self.set_high, bg="#cc0000", fg="white")
+        self.high_btn.pack(side=tk.LEFT, padx=4)
+
+        # Recent values list and sparkline
+        bottom_frame = tk.Frame(root, bg="black")
+        bottom_frame.pack(fill=tk.BOTH, expand=False, padx=8, pady=(6, 12))
+
+        left = tk.Frame(bottom_frame, bg="black")
+        left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
+
+        tk.Label(left, text="Recent readings (most recent on top):", fg="white", bg="black").pack(anchor="w")
+        self.lst = tk.Listbox(left, height=6, width=28)
+        self.lst.pack()
+
+        right = tk.Frame(bottom_frame, bg="black")
+        right.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        tk.Label(right, text="Mini sparkline:", fg="white", bg="black").pack(anchor="w")
+        self.spark = tk.Canvas(right, width=300, height=60, bg="#222222", highlightthickness=0)
+        self.spark.pack()
+
+        # Start periodic update
+        self._update_ui()
+
+        # Graceful close binding
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def update_flow_dosage(self, event=None):
+        """Update flow and dosage from entry fields"""
+        try:
+            flow = float(self.flow_entry.get())
+            dosage = float(self.dosage_entry.get())
+            self.sim.set_flow(flow)
+            self.sim.set_dosage(dosage)
+            print(f"📊 Updated: Flow={flow:.2f} MGD, Dosage={dosage:.2f} mg/L")
+        except ValueError:
+            messagebox.showerror("Input Error", "Please enter valid numbers for Flow and Dosage")
+
+    def set_normal(self):
+        self.sim.set_mode("normal")
+        self.status_label.config(text="Status: Normal Ops")
+
+    def set_failure(self):
+        self.sim.set_mode("sensor_failure")
+        self.status_label.config(text="Status: Training - Sensor Failure")
+
+    def set_high(self):
+        self.sim.set_mode("high_event")
+        self.status_label.config(text="Status: Training - High Event")
+
+    def _update_ui(self):
+        if not self.running:
+            return
+        
+        mg, ok, lbs_day = self.sim.step()
+        color = mg_to_rgb_hex(mg)
+        
+        # Update canvas background to color
+        self.canvas.configure(bg=color)
+        self.value_label.config(text=f"{mg:.2f} mg/L")
+        
+        # Update lbs/day display
+        self.lbs_label.config(text=f"Chlorine: {lbs_day:.2f} lbs/day")
+
+        modbus_text = "OK" if ok else "ConnErr"
+        self.status_label.config(text=f"Status: {self.sim.mode.replace('_',' ').title()} | Modbus: {modbus_text}")
+
+        # Update recent values list
+        self.lst.delete(0, tk.END)
+        for ts, val in list(self.sim.history)[-10:][::-1]:
+            tstr = time.strftime("%H:%M:%S", time.localtime(ts))
+            self.lst.insert(tk.END, f"{tstr}  {val:5.2f} mg/L")
+
+        # Update sparkline
+        self._draw_sparkline()
+
+        # Schedule next update
+        self.root.after(UPDATE_INTERVAL_MS, self._update_ui)
+
+    def _draw_sparkline(self):
+        data = [v for (_, v) in self.sim.history]
+        if not data:
+            self.spark.delete("all")
+            return
+        w = int(self.spark["width"])
+        h = int(self.spark["height"])
+        margin = 4
+        plot_w = w - 2 * margin
+        plot_h = h - 2 * margin
+        n = len(data)
+        maxv = max(max(data), 12.0)
+        minv = min(min(data), 0.0)
+        span = maxv - minv if maxv > minv else 1.0
+
+        self.spark.delete("all")
+        
+        # Draw baseline grid
+        for y_frac in (0.0, 0.5, 1.0):
+            y = margin + y_frac * plot_h
+            self.spark.create_line(margin, y, margin + plot_w, y, fill="#444444")
+
+        # Draw polyline
+        if n == 1:
+            x = margin + plot_w / 2
+            y = margin + (1 - (data[0] - minv) / span) * plot_h
+            self.spark.create_oval(x - 2, y - 2, x + 2, y + 2, fill="#00ff00")
+        else:
+            points = []
+            for i, v in enumerate(data):
+                x = margin + (i / (n - 1)) * plot_w
+                y = margin + (1 - (v - minv) / span) * plot_h
+                points.append((x, y))
+            
+            for i in range(len(points) - 1):
+                x1, y1 = points[i]
+                x2, y2 = points[i + 1]
+                self.spark.create_line(x1, y1, x2, y2, width=2, smooth=True, fill="#00ff88")
+            
+            lx, ly = points[-1]
+            self.spark.create_oval(lx - 3, ly - 3, lx + 3, ly + 3, fill="#00ff88", outline="")
+
+    def _on_close(self):
+        if messagebox.askokcancel("Quit", "Stop simulator and close?"):
+            self.running = False
+            try:
+                self.sim.modbus.close()
+            except Exception:
+                pass
+            self.root.destroy()
+
+
+# -------------- Main --------------
+def main():
+    modbus = ModbusWriter(MODBUS_HOST, MODBUS_PORT, REGISTER_ADDR)
+    sim = ChlorineSimulator(modbus)
+    root = tk.Tk()
+    app = App(root, sim)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
