@@ -1,0 +1,68 @@
+Develop and Enforce Cybersecurity Policies and Procedures (Governance)
+Why this is important
+
+Policies and procedures are the framework that keeps your systems safe.
+Without documented steps, even the best technology and trained staff can fail under stress. Clear documentation helps mitigate damage before, during, and after an incident.
+
+Key Principles
+
+Treat cybersecurity policies like a SOP (Standard Operating Procedure)
+
+They should be clear, actionable, and unambiguous.
+
+A new employee should be able to pick up the policy and perform the task correctly without needing clarification.
+
+Avoid vague statements like “do this, or else” — instead, explain why it matters and what could happen if it’s ignored.
+
+Dissemination and education
+
+Policies don’t protect you if no one knows them.
+
+Spread the policies throughout the organization through:
+
+Training
+
+Internal communications
+
+Workshops or practical exercises
+
+Everyone should understand not only what to do, but why it matters.
+
+Lead by example
+
+Policies should be applied consistently, at all levels.
+
+Avoid a “do as I say, not as I do” approach — if leadership ignores procedures, the rest of the staff will too.
+
+Auditing and testing
+
+Policies must be tested regularly, just like other SOPs:
+
+Ask employees to perform a task within the scope of their work to see if they can follow the documented procedure correctly.
+
+Track and correct gaps in understanding or execution.
+
+This ensures policies are not only written, but practically enforceable.
+
+Continuous improvement
+
+Cybersecurity threats evolve, and so should your policies.
+
+Review and update policies based on:
+
+Lessons learned from incidents
+
+New technologies
+
+Regulatory changes
+
+Resources
+
+SANS Institute Policy Templates:
+Network Device Management Policy
+
+SANS provides a wide library of ready-to-use policy templates, which can be adapted for ICS/OT environments.
+
+💡 Pro tip for ICS/OT:
+Treat your cybersecurity policies like your physical safety SOPs.
+If you wouldn’t hand a new operator an untested procedure for a high-pressure chemical valve, don’t hand them an untested cybersecurity procedure either. The principle is the same: clarity, education, and enforceability save lives and systems.
