@@ -1,0 +1,49 @@
+name: Initialize Repo Structure
+
+on:
+  workflow_dispatch:   # Lets you click "Run Workflow"
+
+permissions:
+  contents: write      # Allows the workflow to create files
+
+jobs:
+  build-structure:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Create folder structure
+      run: |
+        mkdir -p 00-certifications
+        echo "placeholder" > 00-certifications/placeholder.md
+
+        mkdir -p 01-cover-letter-and-resume
+        echo "" > 01-cover-letter-and-resume/cover-letter.md
+        echo "" > 01-cover-letter-and-resume/resume.md
+
+        mkdir -p 02-waterisac-fundamentals/01-inventory/related-incidents
+        echo "" > 02-waterisac-fundamentals/01-inventory/README.md
+        echo "" > 02-waterisac-fundamentals/01-inventory/notes.md
+        echo "placeholder" > 02-waterisac-fundamentals/01-inventory/related-incidents/placeholder.md
+
+        mkdir -p 03-case-studies
+        echo "placeholder" > 03-case-studies/placeholder.md
+
+        mkdir -p 04-quick-wins
+        echo "placeholder" > 04-quick-wins/placeholder.md
+
+        mkdir -p labs
+        echo "placeholder" > labs/placeholder.md
+
+        mkdir -p assets
+        echo "placeholder" > assets/placeholder.md
+
+    - name: Commit and push
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add .
+        git commit -m "Initialize repo structure" || echo "Nothing to commit"
+        git push
