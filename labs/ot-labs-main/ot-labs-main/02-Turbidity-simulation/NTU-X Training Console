@@ -1,0 +1,424 @@
+#!/usr/bin/env python3
+"""
+Turbidity Meter Simulator with Modbus TCP writer (training-only)
+
+Features:
+- Non-blocking Tkinter UI
+- Mock Modbus TCP client (prints to terminal for training)
+- Training scenarios: Normal Ops, Storm Weather, Manual Entry
+- Writes to holding register 40002 (turbidity sensor)
+- Value scaling: writes int(NTU * 100) so 0.45 NTU -> 45
+- CSV logging of all readings
+- Visual pixel display showing turbidity level
+"""
+
+import tkinter as tk
+from tkinter import messagebox
+import random
+import time
+import csv
+import collections
+
+# -------------- Configuration --------------
+MODBUS_HOST = "127.0.0.1"
+MODBUS_PORT = 5020
+REGISTER_ADDR = 40002       # Turbidity register
+UPDATE_INTERVAL_MS = 500    # Update every 500ms
+LOG_FILE = "turbidity_sim_log.csv"
+HISTORY_LEN = 100
+
+# -------------- Mock Modbus Writer --------------
+class ModbusWriter:
+    def __init__(self, host, port, register_40002):
+        print(f"[Mock Modbus] Initialized (not actually connecting)")
+        
+    def connect(self):
+        return True
+        
+    def write_ntu(self, ntu):
+        value = int(round(ntu * 100))
+        print(f"✅ Would write: {ntu:.2f} NTU (value={value}) to register 40002")
+        return True
+        
+    def close(self):
+        pass
+
+# -------------- Simulator Core --------------
+class TurbiditySimulator:
+    def __init__(self, modbus_writer):
+        self.modbus = modbus_writer
+        self.mode = "normal"
+        self.current_ntu = 0.05
+        self.start_time = time.time()
+        self.history = collections.deque(maxlen=HISTORY_LEN)
+        self.log_file = LOG_FILE
+        
+        # Statistics
+        self.max_ntu = 0.0
+        self.avg_ntu = 0.0
+        self.readings_count = 0
+        
+        # Initialize log file
+        try:
+            with open(self.log_file, "a", newline="") as f:
+                writer = csv.writer(f)
+                if f.tell() == 0:
+                    writer.writerow(["timestamp_iso", "timestamp_unix", "mode", "ntu", "written_int"])
+        except Exception as e:
+            print(f"[Log] Could not initialize log file: {e}")
+    
+    def generate_ntu(self):
+        """Generate NTU value based on current mode"""
+        if self.mode == "manual":
+            return self.current_ntu
+        
+        if self.mode == "normal":
+            base = random.uniform(0.03, 0.15)
+            # Occasional spike (2% chance)
+            if random.random() < 0.02:
+                return random.uniform(1.5, 5.0)
+            return base
+        
+        if self.mode == "storm":
+            base = random.uniform(0.15, 0.60)
+            # More frequent spikes (10% chance)
+            if random.random() < 0.10:
+                return random.uniform(0.8, 4.0)
+            return base
+    
+    def step(self):
+        """Compute current NTU, write to Modbus, log, and return value"""
+        now = time.time()
+        
+        if self.mode != "manual":
+            self.current_ntu = round(self.generate_ntu(), 2)
+        
+        # Update statistics
+        self.readings_count += 1
+        self.max_ntu = max(self.max_ntu, self.current_ntu)
+        self.avg_ntu = ((self.avg_ntu * (self.readings_count - 1)) + self.current_ntu) / self.readings_count
+        
+        # Keep history
+        self.history.append((now, self.current_ntu))
+        
+        # Write to Modbus
+        ok = self.modbus.write_ntu(self.current_ntu)
+        
+        # Log entry
+        try:
+            with open(self.log_file, "a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
+                    int(now),
+                    self.mode,
+                    f"{self.current_ntu:.2f}",
+                    int(round(self.current_ntu * 100))
+                ])
+        except Exception as e:
+            print(f"[Log] write failed: {e}")
+        
+        return self.current_ntu, ok
+    
+    def set_mode(self, mode_name):
+        if mode_name not in ("normal", "storm", "manual"):
+            raise ValueError("invalid mode")
+        self.mode = mode_name
+    
+    def set_manual_ntu(self, ntu):
+        self.current_ntu = round(max(0, ntu), 2)
+        self.mode = "manual"
+    
+    def reset_stats(self):
+        self.max_ntu = 0.0
+        self.avg_ntu = 0.0
+        self.readings_count = 0
+        self.history.clear()
+
+# -------------- GUI --------------
+class App:
+    def __init__(self, root, sim: TurbiditySimulator):
+        self.root = root
+        self.sim = sim
+        self.root.title("Turbidity Meter Simulator — Training Only")
+        self.root.geometry("580x680")
+        self.root.configure(bg="#1a1a2e")
+        self.running = True
+        
+        self.setup_ui()
+        self._update_ui()
+        
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+    
+    def setup_ui(self):
+        # Title
+        title_frame = tk.Frame(self.root, bg="#16213e", pady=10)
+        title_frame.pack(fill="x")
+        tk.Label(title_frame, text="🌊 TURBIDITY MONITOR", font=("Arial", 18, "bold"),
+                bg="#16213e", fg="#00d9ff").pack()
+        
+        # Current Reading Display
+        reading_frame = tk.Frame(self.root, bg="#0f3460", pady=12)
+        reading_frame.pack(fill="x", padx=20, pady=8)
+        
+        tk.Label(reading_frame, text="CURRENT READING", font=("Arial", 9),
+                bg="#0f3460", fg="#94a3b8").pack()
+        self.label_value = tk.Label(reading_frame, text="0.00", font=("Arial", 40, "bold"),
+                                    bg="#0f3460", fg="#00ff88")
+        self.label_value.pack()
+        tk.Label(reading_frame, text="NTU (Nephelometric Turbidity Units)", 
+                font=("Arial", 8), bg="#0f3460", fg="#94a3b8").pack()
+        
+        # Status Display
+        self.label_status = tk.Label(self.root, text="● SYSTEM NORMAL", 
+                                     font=("Arial", 12, "bold"),
+                                     bg="#1a1a2e", fg="#00ff88", pady=6)
+        self.label_status.pack()
+        
+        # Modbus Status
+        self.modbus_label = tk.Label(self.root, text="Modbus: OK", 
+                                     font=("Arial", 9),
+                                     bg="#1a1a2e", fg="#4ecdc4")
+        self.modbus_label.pack()
+        
+        # Pixel Display (text-based bar)
+        pixel_frame = tk.Frame(self.root, bg="#0f3460", pady=10)
+        pixel_frame.pack(fill="x", padx=20, pady=5)
+        tk.Label(pixel_frame, text="Visual Scale (. = 0.01 NTU):", 
+                font=("Arial", 10), bg="#0f3460", fg="#94a3b8").pack(anchor="w", padx=10)
+        
+        self.pixel_display = tk.Label(pixel_frame, text="[ ]", 
+                                      font=("Courier", 11), bg="#0f3460", fg="#00ff88",
+                                      anchor="w", justify="left")
+        self.pixel_display.pack(fill="x", padx=10, pady=5)
+        
+        # Statistics Panel
+        stats_frame = tk.Frame(self.root, bg="#0f3460", pady=10)
+        stats_frame.pack(fill="x", padx=20, pady=5)
+        
+        stats_grid = tk.Frame(stats_frame, bg="#0f3460")
+        stats_grid.pack()
+        
+        # Max reading
+        max_frame = tk.Frame(stats_grid, bg="#0f3460")
+        max_frame.grid(row=0, column=0, padx=20)
+        tk.Label(max_frame, text="MAX", font=("Arial", 9),
+                bg="#0f3460", fg="#94a3b8").pack()
+        self.label_max = tk.Label(max_frame, text="0.00", font=("Arial", 16, "bold"),
+                                 bg="#0f3460", fg="#ff6b6b")
+        self.label_max.pack()
+        
+        # Average reading
+        avg_frame = tk.Frame(stats_grid, bg="#0f3460")
+        avg_frame.grid(row=0, column=1, padx=20)
+        tk.Label(avg_frame, text="AVG", font=("Arial", 9),
+                bg="#0f3460", fg="#94a3b8").pack()
+        self.label_avg = tk.Label(avg_frame, text="0.00", font=("Arial", 16, "bold"),
+                                 bg="#0f3460", fg="#4ecdc4")
+        self.label_avg.pack()
+        
+        # Readings count
+        count_frame = tk.Frame(stats_grid, bg="#0f3460")
+        count_frame.grid(row=0, column=2, padx=20)
+        tk.Label(count_frame, text="SAMPLES", font=("Arial", 9),
+                bg="#0f3460", fg="#94a3b8").pack()
+        self.label_count = tk.Label(count_frame, text="0", font=("Arial", 16, "bold"),
+                                   bg="#0f3460", fg="#ffd93d")
+        self.label_count.pack()
+        
+        # Sparkline Chart
+        chart_frame = tk.Frame(self.root, bg="#0f3460", pady=10)
+        chart_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        tk.Label(chart_frame, text="Historical Readings", font=("Arial", 10, "bold"),
+                bg="#0f3460", fg="#94a3b8").pack(anchor="w", padx=10)
+        
+        self.canvas = tk.Canvas(chart_frame, width=560, height=120, 
+                               bg="#16213e", highlightthickness=0)
+        self.canvas.pack(pady=5, padx=10)
+        
+        # Mode Control Buttons
+        mode_frame = tk.Frame(self.root, bg="#1a1a2e", pady=10)
+        mode_frame.pack()
+        tk.Label(mode_frame, text="TRAINING MODE", font=("Arial", 10, "bold"),
+                bg="#1a1a2e", fg="#94a3b8").pack()
+        
+        btn_frame = tk.Frame(mode_frame, bg="#1a1a2e")
+        btn_frame.pack(pady=5)
+        
+        self.btn_normal = tk.Button(btn_frame, text="⚡ Normal Ops", command=self.set_normal,
+                                    width=14, font=("Arial", 10, "bold"),
+                                    bg="#00ff88", fg="#1a1a2e", relief="flat",
+                                    activebackground="#00cc6a")
+        self.btn_normal.pack(side="left", padx=5)
+        
+        self.btn_storm = tk.Button(btn_frame, text="🌧️ Storm Weather", command=self.set_storm,
+                                     width=14, font=("Arial", 10, "bold"),
+                                     bg="#4a5568", fg="white", relief="flat",
+                                     activebackground="#2d3748")
+        self.btn_storm.pack(side="left", padx=5)
+        
+        self.btn_manual = tk.Button(btn_frame, text="✋ Manual Entry", command=self.set_manual,
+                                    width=14, font=("Arial", 10, "bold"),
+                                    bg="#4a5568", fg="white", relief="flat",
+                                    activebackground="#2d3748")
+        self.btn_manual.pack(side="left", padx=5)
+        
+        # Manual Input
+        manual_frame = tk.Frame(self.root, bg="#1a1a2e", pady=10)
+        manual_frame.pack()
+        
+        tk.Label(manual_frame, text="Manual NTU Input:", font=("Arial", 9),
+                bg="#1a1a2e", fg="#94a3b8").pack(side="left", padx=5)
+        
+        self.manual_entry = tk.Entry(manual_frame, width=12, font=("Arial", 12),
+                                     bg="white", fg="black", insertbackground="black",
+                                     relief="solid", borderwidth=2)
+        self.manual_entry.pack(side="left", padx=5)
+        
+        tk.Button(manual_frame, text="Apply", command=self.apply_manual,
+                 font=("Arial", 9, "bold"), bg="#00d9ff", fg="#1a1a2e",
+                 relief="flat", activebackground="#00b8d9").pack(side="left", padx=5)
+        
+        tk.Button(manual_frame, text="Reset Stats", command=self.reset_stats,
+                 font=("Arial", 9, "bold"), bg="#ff6b6b", fg="white",
+                 relief="flat", activebackground="#ff5252").pack(side="left", padx=5)
+    
+    def set_normal(self):
+        self.sim.set_mode("normal")
+        self.update_button_states()
+    
+    def set_storm(self):
+        self.sim.set_mode("storm")
+        self.update_button_states()
+    
+    def set_manual(self):
+        self.sim.set_mode("manual")
+        self.update_button_states()
+    
+    def update_button_states(self):
+        # Reset all buttons
+        self.btn_normal.config(bg="#4a5568")
+        self.btn_storm.config(bg="#4a5568")
+        self.btn_manual.config(bg="#4a5568")
+        
+        # Highlight active button
+        if self.sim.mode == "normal":
+            self.btn_normal.config(bg="#00ff88")
+        elif self.sim.mode == "storm":
+            self.btn_storm.config(bg="#ffa500")
+        elif self.sim.mode == "manual":
+            self.btn_manual.config(bg="#00d9ff")
+    
+    def apply_manual(self):
+        try:
+            val = float(self.manual_entry.get())
+            self.sim.set_manual_ntu(val)
+            self.update_button_states()
+        except:
+            pass
+    
+    def reset_stats(self):
+        self.sim.reset_stats()
+    
+    def draw_sparkline(self):
+        self.canvas.delete("all")
+        
+        if len(self.sim.history) < 2:
+            return
+        
+        # Draw grid lines
+        for i in range(4):
+            y = 10 + i * 30
+            self.canvas.create_line(0, y, 560, y, fill="#2d3748", width=1)
+        
+        # Get data
+        data = [ntu for (_, ntu) in self.sim.history]
+        
+        # Scale and draw line
+        max_display = max(data + [1.0])
+        scale_x = 560 / max(len(data) - 1, 1)
+        scale_y = 100 / max_display
+        
+        points = []
+        for i, val in enumerate(data):
+            x = i * scale_x
+            y = 120 - (val * scale_y)
+            points.extend([x, y])
+        
+        if len(points) >= 4:
+            self.canvas.create_line(points, fill="#00d9ff", width=2, smooth=True)
+            
+            # Fill area under curve
+            fill_points = points + [points[-2], 120, points[0], 120]
+            self.canvas.create_polygon(fill_points, fill="#00d9ff", 
+                                      stipple="gray25", outline="")
+    
+    def _update_ui(self):
+        if not self.running:
+            return
+        
+        ntu, ok = self.sim.step()
+        
+        # Update main display
+        self.label_value.config(text=f"{ntu:.2f}")
+        
+        # Update value color
+        if ntu >= 1.0:
+            self.label_value.config(fg="#ff0000")
+        elif ntu >= 0.30:
+            self.label_value.config(fg="#ffa500")
+        else:
+            self.label_value.config(fg="#00ff88")
+        
+        # Update pixel display (each . = 0.01 NTU)
+        dots = "." * int(ntu * 100)
+        self.pixel_display.config(text=f"[ {dots} ]")
+        
+        # Update status
+        if ntu >= 1.0:
+            self.label_status.config(text="⚠️ EMERGENCY SHUTDOWN", fg="#ff0000")
+        elif ntu >= 0.30:
+            self.label_status.config(text="⚠️ HIGH TURBIDITY WARNING", fg="#ffa500")
+        else:
+            self.label_status.config(text="● SYSTEM NORMAL", fg="#00ff88")
+        
+        # Update Modbus status
+        modbus_text = "Modbus: OK" if ok else "Modbus: ConnErr"
+        modbus_color = "#4ecdc4" if ok else "#ff6b6b"
+        self.modbus_label.config(text=modbus_text, fg=modbus_color)
+        
+        # Update statistics
+        self.label_max.config(text=f"{self.sim.max_ntu:.2f}")
+        self.label_avg.config(text=f"{self.sim.avg_ntu:.2f}")
+        self.label_count.config(text=str(self.sim.readings_count))
+        
+        # Update sparkline
+        self.draw_sparkline()
+        
+        # Schedule next update
+        self.root.after(UPDATE_INTERVAL_MS, self._update_ui)
+    
+    def _on_close(self):
+        if messagebox.askokcancel("Quit", "Stop simulator and close?"):
+            self.running = False
+            try:
+                self.sim.modbus.close()
+            except Exception:
+                pass
+            self.root.destroy()
+
+# -------------- Main --------------
+def main():
+    # Create mock Modbus writer
+    modbus = ModbusWriter(MODBUS_HOST, MODBUS_PORT, REGISTER_ADDR)
+    
+    # Create simulator
+    sim = TurbiditySimulator(modbus)
+    
+    # Create GUI
+    root = tk.Tk()
+    app = App(root, sim)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
