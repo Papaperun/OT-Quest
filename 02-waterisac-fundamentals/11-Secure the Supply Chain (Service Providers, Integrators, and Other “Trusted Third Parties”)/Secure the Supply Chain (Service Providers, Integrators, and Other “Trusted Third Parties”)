@@ -1,0 +1,87 @@
+Secure the Supply Chain (Service Providers, Integrators, and Other “Trusted Third Parties”)
+Why this is important
+
+You cannot run a modern utility without third-party vendors. But as my dad used to say, “More parts, more chances for leaks.”
+He meant physical leaks in the pipes—but in cybersecurity, it’s about more points of attack.
+
+The MITRE ATT&CK framework calls this “abusing trusted relationships”: adversaries often infiltrate organizations through smaller, less secure vendors who already have access to the intended target.
+
+Famous Supply Chain Breaches
+
+Target (2013):
+A small HVAC vendor was spear-phished. Attackers used its network credentials to access Target’s systems. This breach is still a classic case study for third-party risk management.
+
+SolarWinds (2020):
+Over 18,000 customers installed a compromised Orion update, affecting U.S. government agencies and private companies like Microsoft, Intel, and Cisco.
+
+Log4Shell (2021):
+Critical vulnerability in the Apache Log4j 2 Java library, widely used in enterprise apps, cloud services, IoT, and SCADA systems—including water/wastewater ICS devices.
+Experts believe the full impact may take years to surface.
+
+Unitronics Vision Series PLC (2023):
+Iranian-backed hackers exploited default passwords (“1111”) to compromise PLCs in multiple U.S. water/wastewater utilities.
+
+MOVEit (2023):
+A flaw in MOVEit Managed File Transfer was exploited by the CL0P ransomware group, affecting thousands of organizations and leaking data of ~77 million individuals.
+
+These cases show how one small, insecure link can compromise entire networks.
+
+Secure by Design Guidance
+
+Utilities can demand security during procurement. Some best practices include:
+
+Vendor policies and pledges:
+
+Has the manufacturer taken CISA’s Secure by Design Pledge?
+
+Are progress reports publicly available?
+
+Patch management:
+
+Are patches easy to install?
+
+Is support provided for widespread, automated updates?
+
+Authentication & access control:
+
+Is Single Sign-On (SSO) offered at no cost?
+
+Are MFA or other phishing-resistant methods enabled by default?
+
+Have default passwords been eliminated?
+
+Vulnerability management:
+
+Are known vulnerabilities addressed systematically?
+
+Is there a roadmap for unaddressed vulnerabilities?
+
+Transparency:
+
+Is a Software Bill of Materials (SBOM) available in machine-readable format?
+
+Does it list all third-party dependencies, including open-source components?
+
+Open source security:
+
+Are contributions vetted to sustain open-source projects?
+
+Is there an established process, like an Open Source Program Office (OSPO)?
+
+Vulnerability disclosure:
+
+Are CVE records accurate and include CWE and CPE fields?
+
+Does the manufacturer allow testing by the public through a vulnerability disclosure policy?
+
+Sometimes the lowest bidder is the lowest bidder for a reason.
+
+Takeaways for ICS/OT
+
+Third-party vendors are potential attack vectors.
+
+Supply chain security isn’t optional—it’s mission-critical.
+
+Assess vendors, demand security by design, and always verify access, authentication, and patch management before trusting a product or service.
+
+Resource: CISA Secure by Demand Guide
