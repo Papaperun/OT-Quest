@@ -1,0 +1,122 @@
+Theme: Cybersecurity Is a Shared Responsibility
+🔑 Core Concept
+
+Cybersecurity is a shared responsibility, similar to an open door or open gate on a facility.
+
+The real issue:
+Most employees are not trained to even see the door is open.
+
+If staff are kept in the dark, they simply don’t know what they don’t know.
+
+(Your thought) “I wonder if, in human history, we ever had to learn to close the door to keep the monsters out.”
+This actually fits — cybersecurity is a new kind of “monster at the gates,” and people need training to recognize it.
+
+🧠 Culture Must Support Cybersecurity
+
+Cybersecurity must come from the top down in the organization.
+
+Your note: You think it should be lateral as well — meaning leadership sets the culture, but everyone, across every role, shares responsibility.
+
+This is correct: the most successful organizations have top-down vision and side-to-side reinforcement.
+
+🏛 National Cybersecurity Alliance (NCA)
+
+Provides awareness programs and guides.
+
+TL;DR:
+They are basically pushing the same safety culture we already use for:
+
+back safety
+
+ladder safety
+
+chemical safety
+But rarely do they tell employees:
+→ “Hey, don’t put your password there.”
+
+This highlights the gap between physical safety training and cybersecurity awareness training.
+
+📘 AWWA — Risk Management Guide
+
+AWWA provides a full risk management framework tailored to water and wastewater utilities.
+
+Included in recommendations for:
+
+cyber readiness
+
+incident response
+
+business continuity
+
+physical + cyber integration
+
+🚀 Cyber Readiness Institute
+
+Worth reviewing — they provide:
+
+free cybersecurity readiness guides
+
+small utility–focused best practices
+
+leadership culture-building materials
+
+insider threat awareness materials
+
+👤 Insider Threats — A People Problem
+
+Insider threats are one of the biggest risks to water/ICS systems.
+
+Types of Insider Threats
+1. Negligent / Accidental
+
+Usually due to lack of awareness
+
+Clicking phishing emails
+
+Misconfiguring systems
+
+Weak passwords
+
+2. Malicious
+
+Intentional sabotage, revenge, or reputation damage
+
+3. Theft
+
+Stealing data, access, credentials, materials
+
+4. Espionage
+
+Selling access or intelligence to competitors, criminals, or hostile actors
+
+Most insider threats are NOT malicious — they are accidental.
+Which ties back to the theme:
+→ Employees aren’t trained to see the open cybersecurity “door.”
+
+⚠️ Top Five Insider-Threat Stressors
+
+(Things that increase the chance someone becomes a risk)
+
+Termination
+
+Fired staff may act impulsively or out of anger.
+
+Resignation
+
+People leaving may take data, credentials, or “borrow” access.
+
+Internal Position Change
+
+Conflicting access rights.
+
+Old privileges not removed.
+
+Organizational Mergers & Acquisitions (M&A)
+
+New systems, new people, unknown access.
+
+Emergency Financial Problems
+
+Desperation → selling access on dark markets.
+
+These are all documented risk indicators in insider threat models (CERT-NIST).
