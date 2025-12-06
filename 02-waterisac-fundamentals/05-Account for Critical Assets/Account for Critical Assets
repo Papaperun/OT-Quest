@@ -1,0 +1,206 @@
+You can’t protect what you don’t know exists.
+🔑 Why This Chapter Matters
+
+Identifying and inventorying critical assets shows you:
+
+what matters most
+
+what needs protection
+
+what could cause serious impact if compromised
+
+Most importantly:
+
+Sensors AND actuators are both critical.
+You had a realization here, and it’s an important one:
+You were thinking only about sensors, but actuators (pumps, valves, chemical feeds, motors) are often more dangerous if tampered with.
+
+Attackers WANT actuators — that’s how real-world physical damage happens.
+
+🎯 Critical Assets Include
+
+Sensors
+
+Actuators
+
+Pumps
+
+Motors
+
+PLCs
+
+HMIs
+
+SCADA servers
+
+Historians
+
+Remote access pathways
+
+Network gear
+
+Wireless radios
+
+Chemical feed systems
+
+Backup power
+
+Basically, anything that affects control, safety, or compliance.
+
+🎥 Your Transporter Movie Analogy
+
+Perfectly accurate:
+If a team doesn’t know what they’re transporting (protecting), they can’t secure it.
+
+Same for ICS:
+
+Knowing what you're protecting defines how you protect it.
+
+📘 Asset Lists & IP Tracking
+
+Maintaining:
+
+a list of all IP addresses,
+
+all devices,
+
+all changes on the network
+
+…is essential.
+And you’re already doing this at home with Nmap — that’s real-world skill-building.
+
+📚 IEC 62443
+
+You keep seeing it because:
+
+It’s the gold standard for ICS security
+
+It covers segmentation, asset identification, secure development, vendor requirements
+
+Many utilities will move toward it in the next few years
+
+Yes — worth looking up.
+It’s basically the “NFPA Handbook” of ICS cybersecurity.
+
+📝 Maintain Accurate Documentation
+
+This includes:
+
+Baselines
+
+Network diagrams
+
+Device counts
+
+Firmware versions
+
+Patch levels
+
+IP allocations
+
+User accounts
+
+Your idea:
+
+A Raspberry Pi could sit on the network counting things with a 5-line script
+
+Yep — absolutely valid.
+That is literally the foundation of what commercial OT monitoring appliances do.
+
+You’re thinking like an engineer and a defender.
+
+📦 Backup, Spares & Lifecycle Planning
+
+The chapter mentions key policies every utility should have:
+
+1. Backup & Spares Policy
+
+Because supply chains fail.
+You may not get replacement parts for:
+
+PLCs
+
+radios
+
+HMIs
+for months.
+
+2. Ability to Rebuild to Known-Good Configuration
+
+You need trained staff who can rebuild:
+
+PLC logic
+
+HMI projects
+
+SCADA servers
+
+network configs
+
+Operator turnover makes this hard for small utilities.
+
+3. Secure Products Requiring Internet/Cloud/Wireless
+
+Anything cloud-connected MUST have:
+
+MFA
+
+firewalls
+
+vendor access controls
+
+patching schedules
+
+4. Vendor Vetting Process
+
+Look for:
+
+MTBF (Mean Time Between Failures)
+
+End of Service dates
+
+End of Support dates
+
+support roadmap
+
+5. Controls Before EOS
+
+Before a device goes out of support:
+
+isolate it
+
+segment it
+
+restrict traffic
+
+add monitoring
+
+plan replacement
+
+🚶 Physical Inspection
+
+Automation is great, but you still have to walk the facilities.
+
+Physical inspection includes:
+
+opening control cabinets
+
+checking racks
+
+confirming serial numbers
+
+confirming firmware
+
+identifying old radios
+
+verifying cable paths
+
+checking unlabeled switches
+
+verifying what devices actually exist onsite
+
+Your note nailed it:
+
+Automation is nice, but get off your ass.
+
+Perfectly captures the reality of ICS.
