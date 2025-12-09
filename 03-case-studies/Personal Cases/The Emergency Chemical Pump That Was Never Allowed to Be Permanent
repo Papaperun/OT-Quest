@@ -1,0 +1,52 @@
+Case Study: The Emergency Chemical Pump That Was Never Allowed to Be Permanent
+“The Padlock Defense”
+Industry: Municipal / Industrial Water Treatment
+Date of incident: ~2019–2020 (exact year redacted)
+Author reflection: Written December 2025 with current OT/ICS security knowledge
+1. Background
+The plant uses polymer for flocculation. A single primary metering pump feeds all flocculator wells. Administration wanted a fully installed “emergency backup pump” that could be switched on immediately if the primary pump failed. Their chosen location: directly inside one of the flocculator wells. Their concept of operations: flip a switch and walk away.
+2. Immediate Red Flags (identified at the time, pre-OT training)
+Any permanent chemical injection point requires state TCEQ (regulatory) approval → none existed.
+No flow measurement, no dosage feedback, no high-level interlock, no anti-siphon, no check valve monitoring.
+Proposed electrical design: hard-wired-on, no permissives, no HMI integration, no remote stop.
+Effectively an open-loop, unmonitored chemical weapon sitting in the process.
+3. What Actually Happened (the compromise)
+I executed the following field-engineer countermeasures:
+Installed all suction/discharge tubing and isolation valves exactly as requested (so a real emergency could be responded to in <10 min).
+Ran temporary-power conduit and receptacle but never terminated the circuit permanently.
+Removed the actual peristaltic metering pump from the well and placed it in a locked instrumentation cabinet (key held only by shift supervisors).
+Wrote and trained a strict step-by-step SOP: locate pump → retrieve key → connect power whip → connect tubing quick-connects → set speed manually using calibrated draw-down → operator must remain present until complete.
+Pump cannot run without deliberate, multi-step human action every single time.
+Result: the plant has a functional emergency capability, but zero possibility of accidental or unauthorized continuous dosing.
+4. Retrospective Analysis with Modern OT/ICS Knowledge (2025 lens)
+What I instinctively did in 2019–2020 maps 1:1 to current best practice in both functional safety and OT cybersecurity:
+Risk
+Mitigation I applied
+Modern framework alignment
+Unauthorized actuation
+Physical removal of actuator + locked storage
+True air-gap (stronger than network segmentation)
+Insider threat / poor judgment
+Only trained operators have key and SOP
+Principle of least privilege + human-in-the-loop
+Zero monitoring / runaway dosing
+Forced manual operation every time
+Defense-in-depth; eliminates hidden failure modes
+Permanent unapproved injection point
+Nothing is actually permanent
+Regulatory compliance preserved
+Single-point brainless automation
+Procedure-based control instead
+Aligns with IEC 62443-3-3 SR 1.1 (Identification & authentication), FR 2 (Use control), and NIST 800-82 physical security recommendations
+
+5. Key Lessons (now that I actually know the buzzwords)
+The biggest OT threat at most sites is still authorized but incompetent people, not nation-state hackers.
+When leadership demands something stupid, you can often give them 95 % of what they want while quietly enforcing the 5 % that actually keeps the plant safe and legal.
+Physical security beats cybersecurity every time you can use it. A $5 padlock and a 30 lb pump in a cage is more secure than Purdue Level 2 role-based access control.
+“Convenience” is the mortal enemy of both safety and security. If something is too easy to start, it will eventually start itself at 3 a.m. on a holiday.
+Never underestimate the power of “making it someone’s deliberate job” instead of “making it automatic.”
+6. Closing Thought
+Years before I ever read IEC 62443, NIST 800-82, or ISA-TR84.00.09, I accidentally implemented one of the strongest possible controls: remove the pump and lock it up.. Turns out common-sense engineering and modern OT security converge in exactly the same place.
+The pump is still in that locked cabinet in 2025. It has been used exactly Never in the time it has been in place; both times by the book, both times saved the day, and zero incidents.
+Sometimes the best security patch is a padlock and a healthy distrust of idiots with good intentions.
+Case closed. Literally.
