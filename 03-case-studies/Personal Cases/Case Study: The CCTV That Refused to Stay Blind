@@ -1,0 +1,30 @@
+Case Study: The CCTV That Refused to Stay Blind/ Cyber Secuity is only as good as the phyical one 
+“The Spite That Went Through Channels (and Added a $35 Chime)”
+Industry: Water/Wastewater Treatment
+Timeline: ~2020–2021
+Author reflection: December 2025, full story with all the petty details
+Motivation: 85 % spite, 15 % actual security.
+The day-shift crowd still refused to type their PINs, but now they had a new excuse after we fixed the camera:
+“Well… we didn’t HEAR anyone at the gate!”
+So I spent $35 of my own money (later expensed) on a simple gate-chime alarm: a magnetic reed switch on the gate arm wired to a 12 V buzzer in the control room.
+When the gate arm lifts or someone tailgates, it goes DING-DING-DING-DING loud enough that you can’t ignore it even with headphones on.
+Complete Package We Delivered (all approved, all documented)
+Dedicated ex-surplus OptiPlex running only the camera client 24/7 (formal policy exception).
+Separate unmanaged switch for logical isolation.
+Wall-mounted 24" monitor labeled “GATE – ALWAYS ON.”
+$35 gate-chime alarm wired directly to the gate controller relay (now audible notification of every entry attempt).
+End Result
+Visual proof of who’s at the gate: 100 %
+Audible proof someone’s at the gate: 100 %
+Phone calls to open the gate for lazy people: 0 % (forever)
+The chime was the kill shot. After the third “DING-DING-DING” went off while someone sat there pretending they didn’t know how to type four numbers, even the laziest supervisor gave up and started using their PIN.
+Updated 2025 Takeaways
+A $35 hardware store buzzer can be the most effective access-control enforcement device on site.
+When you combine always-on visibility with an annoying noise, human behavior changes instantly.
+Best security improvements usually have three ingredients:
+A real vulnerability
+An operator who’s personally offended by it
+Something that makes laziness audible to everyone in the room
+Five years running. Zero gate calls. The chime still works. The OptiPlex still works. My sanity is still intact.
+Moral: Never underestimate the power of a loud buzzer and a well-channeled grudge.
+Case closed. For real this time. And it still goes ding
