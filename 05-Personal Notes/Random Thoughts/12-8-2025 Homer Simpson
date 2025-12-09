@@ -1,0 +1,18 @@
+Today’s Musings Date: 12/8/2025
+
+Sometimes when I think about running SCADA — or watching my coworkers run it — the image that pops in my head is Homer Simpson at the controls. Not because we’re stupid or brainless, but because we’re clueless.
+
+And it’s not our fault.
+
+Over half my life has been in this career. Almost everything I’ve ever learned was hearsay knowledge, tribal knowledge, or a sticky note taped to a monitor. Things change all the time without our awareness because the SCADA tech “knows better.”
+
+Here’s the thing:
+These systems are vast, complex, and dangerous… and you need a certification to run a forklift, but not the systems that run an entire city’s water supply.
+
+On the OT side, we should be able to monitor changes, track baselines, and understand what’s happening. But when things get changed underneath us and we speak up, we get told:
+“You don’t know what you’re talking about.”
+
+We end up treating critical infrastructure like we’re a goon in a Batman Arkham game — our buddy just got grabbed, and we shrug and keep patrolling.
+
+In my journey forward, I’m going to push back on that. Even if I have to start with sticky notes, I’m going to begin implementing the WaterISAC fundamentals.
+Not just to complain — but to actually build something better.
