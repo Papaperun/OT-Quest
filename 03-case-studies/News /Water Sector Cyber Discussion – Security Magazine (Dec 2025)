@@ -1,0 +1,38 @@
+I aim to analyze the events objectively, without making judgments about the circumstances or individuals involved.
+# Water Sector Cyber Discussion – Security Magazine (Dec 2025)
+Link: https://www.securitymagazine.com/blogs/14-security-blog/post/102018-high-water-mark-cisa-shares-foundations-for-effective-cybersecurity-and-risk-management
+
+## My Take (field notes)
+
+Wasn’t in the room when these incidents went down, so hard to know exactly what happened, but the pattern is crystal clear:
+
+- First fundamental step is still missing for way too many utilities: a real, living asset inventory (especially OT). No inventory → no visibility → no chance.
+- The article’s quote nails it: “too many leaks and not enough fingers.” Feels like the whole sector is the little Dutch boy running along the dike in a panic.
+
+## Local Wake-Up Calls (This Ain't Theory Anymore)
+
+- **Killeen (next town over, Aug 2024)**: BlackSuit ransomware slammed city systems—emails, courts, utility billing down. Water stayed flowing via manual ops, no payout, no data dump confirmed. But imagine if it pivoted to SCADA...
+- **American Water (interview target, Oct 2024)**: Detected unauthorized access on 10/3; billing nuked, systems isolated fast. No service disruptions, but nation-state shadows (Iran/China/Russia vibes) and a scramble for experts. Explains why they're hiring—need folks who can bring a dead plant online solo.
+
+These weren't "somewhere else" hits; one's the zip code over, the other's the org sniffing around my resume. Moral: When the neighbor's dike springs a leak, you don't wait for the flood.
+
+## The AI Paradox I Keep Coming Back To
+
+We’re told “just add more AI/ML for anomaly detection and we’ll catch Volt Typhoon / ransomware in real time.”
+
+Reality check:
+- More AI = more GPUs = more hyperscale data centers = millions of gallons of additional water evaporated for cooling.
+- More endpoints/sensors running local AI models = exponentially larger attack surface.
+- More cloud analytics = your SCADA telemetry now lives in the same data centers that need… water… to stay online.
+
+We are literally using the resource we’re trying to protect (water) to power the tools we hope will protect it, while simultaneously making the system more complex and leak-prone in the process.
+
+## Practical Way Out (my current thinking)
+
+1. Yes to AI, but run it on-prem or in hardened utility-owned mini-DC, not public cloud.
+2. Scope it ruthlessly — AI watches only the true crown-jewel assets (chemical dosing, high-service pumps, dam actuators — not every butterfly valve in the distribution system.
+3. Accept that 100% leak-proof is impossible; optimize for speed of containment instead. If you truly know your top 200 “city dies if these go down” assets, you can protect and monitor those like Fort Knox and let the rest have some surface area.
+
+Otherwise we’re trapped in an endless doom loop: build bigger data centers → burn more water → need even better cyber defenses → build even bigger data centers…
+
+Bottom line: the cure can’t be allowed to consume more of the patient than the disease does.
