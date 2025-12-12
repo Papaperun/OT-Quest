@@ -1,0 +1,316 @@
+# Raspberry Pi Zero W Modbus TCP Server
+
+A lightweight Modbus TCP server implementation for Raspberry Pi Zero W, perfect for ICS/SCADA lab environments and industrial protocol testing.
+
+## 🎯 Overview
+
+This project demonstrates how to turn a $10 Raspberry Pi Zero W into a fully functional Modbus TCP server that can communicate with industrial control systems, SCADA applications, and IoT devices. Successfully tested and verified working with pymodbus 3.11.4.
+
+## ✨ Features
+
+- ✅ Full Modbus TCP server implementation
+- ✅ Supports all standard register types (Coils, Discrete Inputs, Holding Registers, Input Registers)
+- ✅ 100 registers per type (addresses 0-99)
+- ✅ Headless operation via SSH
+- ✅ Low resource usage (perfect for Pi Zero W)
+- ✅ Compatible with standard Modbus clients
+- ✅ Tested with real-world sensor simulators
+
+## 🛠️ Hardware Requirements
+
+- Raspberry Pi Zero W (or any Raspberry Pi with network connectivity)
+- MicroSD card (8GB minimum)
+- Power supply
+- Network connection (WiFi or Ethernet)
+
+## 📋 Software Requirements
+
+- Raspberry Pi OS (Debian-based)
+- Python 3.11+
+- pymodbus 3.11.4
+
+## 🚀 Quick Start
+
+### 1. Initial Setup
+
+Connect to your Pi via SSH:
+```bash
+ssh pi@raspberrypi.local
+```
+
+Update system packages:
+```bash
+sudo apt update
+```
+
+### 2. Create Project Directory
+
+```bash
+mkdir ~/modbus-server
+cd ~/modbus-server
+```
+
+### 3. Set Up Virtual Environment
+
+Modern Raspberry Pi OS requires virtual environments for Python packages:
+
+```bash
+# Install venv support (if not already installed)
+sudo apt install python3-venv -y
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+```
+
+### 4. Install Dependencies
+
+```bash
+pip install pymodbus
+```
+
+### 5. Create Server Script
+
+Create `modbus_server.py`:
+
+```python
+#!/usr/bin/env python3
+"""
+Simple Modbus TCP Server for Raspberry Pi Zero W
+Using pymodbus 3.11.x with updated API
+"""
+
+from pymodbus.server import StartAsyncTcpServer
+from pymodbus.datastore import ModbusServerContext, ModbusSequentialDataBlock
+from pymodbus.datastore.context import ModbusDeviceContext
+import asyncio
+import logging
+
+# Set up logging
+logging.basicConfig()
+log = logging.getLogger()
+log.setLevel(logging.INFO)
+
+async def run_server():
+    # Create datablocks with 100 registers each
+    store = ModbusDeviceContext(
+        di=ModbusSequentialDataBlock(0, [0]*100),  # Discrete Inputs
+        co=ModbusSequentialDataBlock(0, [0]*100),  # Coils
+        hr=ModbusSequentialDataBlock(0, [0]*100),  # Holding Registers
+        ir=ModbusSequentialDataBlock(0, [0]*100),  # Input Registers
+    )
+    
+    # Create server context with devices parameter
+    context = ModbusServerContext(devices=store, single=True)
+    
+    print("="*50)
+    print("Starting Modbus TCP Server")
+    print("="*50)
+    print("Listening on: 0.0.0.0:5020")
+    print("Registers initialized: 0-99 (all types)")
+    print("Press CTRL+C to stop")
+    print("="*50)
+    
+    await StartAsyncTcpServer(
+        context=context,
+        address=("0.0.0.0", 5020)
+    )
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(run_server())
+    except KeyboardInterrupt:
+        print("\n" + "="*50)
+        print("Server stopped by user")
+        print("="*50)
+```
+
+### 6. Run the Server
+
+```bash
+python modbus_server.py
+```
+
+The server will start listening on port 5020 (using port 5020 instead of 502 avoids needing root privileges).
+
+## 📡 Testing the Server
+
+### From Another Computer
+
+Create a simple test client (`test_client.py`):
+
+```python
+from pymodbus.client import ModbusTcpClient
+
+# Replace with your Pi's IP address
+PI_IP = "192.168.1.100"
+client = ModbusTcpClient(PI_IP, port=5020)
+
+if client.connect():
+    print("✅ Connected!")
+    
+    # Write a value
+    client.write_register(5, 1234, slave=1)
+    
+    # Read it back
+    result = client.read_holding_registers(5, 1, slave=1)
+    print(f"Register 5: {result.registers[0]}")
+    
+    client.close()
+else:
+    print("❌ Connection failed")
+```
+
+## 🔄 Reconnecting After Reboot
+
+Every time you SSH back into your Pi:
+
+```bash
+cd ~/modbus-server
+source venv/bin/activate
+python modbus_server.py
+```
+
+Or use this one-liner:
+```bash
+cd ~/modbus-server && source venv/bin/activate && python modbus_server.py
+```
+
+## 📊 Use Cases
+
+- **ICS/SCADA Lab Environments**: Simulate PLCs, RTUs, and field devices
+- **Protocol Testing**: Test Modbus client applications
+- **Security Research**: Practice ICS security testing in a safe environment
+- **IoT Integration**: Connect industrial sensors to modern systems
+- **Education**: Learn industrial protocols hands-on
+
+## 🧪 Tested Configurations
+
+### Successfully Tested With:
+
+- **Hardware**: Raspberry Pi Zero W
+- **OS**: Raspberry Pi OS (Debian Bookworm)
+- **Python**: 3.11.2
+- **Pymodbus**: 3.11.4
+- **Clients Tested**:
+  - Python pymodbus client
+  - Custom sensor simulators (turbidity meter)
+  - Standard Modbus testing tools
+
+### Register Configuration:
+
+| Register Type | Function Codes | Address Range | Access |
+|--------------|----------------|---------------|---------|
+| Coils (CO) | 01, 05, 15 | 0-99 | Read/Write |
+| Discrete Inputs (DI) | 02 | 0-99 | Read Only |
+| Holding Registers (HR) | 03, 06, 16 | 0-99 | Read/Write |
+| Input Registers (IR) | 04 | 0-99 | Read Only |
+
+## ⚠️ Important Notes
+
+### Why Virtual Environment?
+
+Modern Raspberry Pi OS (Bookworm and later) enforces PEP 668, which prevents system-wide pip installations. Virtual environments are **required** to avoid the `externally-managed-environment` error.
+
+### Port Selection
+
+- **Port 502**: Standard Modbus port, requires `sudo`
+  ```bash
+  sudo venv/bin/python modbus_server.py
+  ```
+- **Port 5020**: Non-privileged port, no sudo required (recommended)
+
+### Pymodbus 3.x API Changes
+
+This project uses pymodbus 3.11.4, which has significant API changes from 2.x:
+- `ModbusSlaveContext` → `ModbusDeviceContext`
+- `slaves=` parameter → `devices=` parameter
+- Async/await required for server operations
+
+Many online tutorials use the old 2.x API and will **not** work with modern pymodbus.
+
+## 🐛 Troubleshooting
+
+### "externally-managed-environment" Error
+**Solution**: Use a virtual environment (see Setup instructions above)
+
+### Import Errors
+**Solution**: Make sure you're using pymodbus 3.11.4+
+```bash
+pip show pymodbus
+```
+
+### Connection Refused
+**Solution**: 
+- Check if server is running
+- Verify firewall settings
+- Confirm correct IP address and port
+
+### Permission Denied on Port 502
+**Solution**: Either use port 5020 or run with sudo:
+```bash
+sudo venv/bin/python modbus_server.py
+```
+
+## 🔮 Future Enhancements
+
+- [ ] Auto-start on boot (systemd service)
+- [ ] Web-based monitoring dashboard
+- [ ] Multi-slave device support
+- [ ] Register persistence (save/load state)
+- [ ] Authentication and security features
+- [ ] Real-time logging and analytics
+
+## 📚 Resources
+
+- [Pymodbus Documentation](https://pymodbus.readthedocs.io/)
+- [Modbus Protocol Specification](https://modbus.org/specs.php)
+- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
+
+## 🤝 Contributing
+
+Contributions are welcome! This project was built for learning and experimentation in ICS/SCADA environments.
+
+## 📝 License
+
+This project is provided as-is for educational and testing purposes.
+
+## ⚡ Quick Reference Card
+
+```bash
+# Connect to Pi
+ssh pi@raspberrypi.local
+
+# Navigate and activate
+cd ~/modbus-server && source venv/bin/activate
+
+# Run server
+python modbus_server.py
+
+# Stop server
+CTRL+C
+
+# Exit virtual environment
+deactivate
+
+# Find Pi's IP
+hostname -I
+```
+
+## 🎓 Lessons Learned
+
+This project successfully demonstrates:
+- Setting up industrial protocols on embedded devices
+- Working with pymodbus 3.x API changes
+- Managing Python virtual environments on Raspberry Pi OS
+- Building cost-effective ICS lab environments
+
+**Total Cost**: ~$10 for a fully functional Modbus TCP server!
+
+---
+
+Built with ❤️ for ICS research and education
+
+*"I built this in a cave! With a box of scraps!"* - Tony Stark (probably about Raspberry Pis)
