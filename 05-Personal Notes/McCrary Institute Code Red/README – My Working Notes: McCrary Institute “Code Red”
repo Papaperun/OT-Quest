@@ -1,0 +1,23 @@
+README – My Working Notes: McCrary Institute “Code Red”
+A no-BS, water-plant-operator translation of China’s Typhoon cyber campaigns
+📕 Read the actual report alongside me
+Get the full PDF here (free, no login):
+https://mccraryinstitute.com/code-red-a-guide-to-understanding-chinas-sophisticated-typhoon-cyber-campaigns/
+Why these notes exist
+I’m just a guy who treats drinking water for a living. I’ve spent twenty-plus years fixing pumps at 3 a.m., rebuilding valves in the snow, and praying the SCADA doesn’t crash on Christmas.
+Then I read Code Red and realized the same pumps I baby every day are now on a target list next to power grids, hospitals, and ports.
+This repo is me wrestling that report into language I can actually use at the lunch table, in the control room, or when I’m explaining to the city manager why we suddenly need money we don’t have.
+What you’ll find here
+
+Chapter-by-chapter breakdowns in plain English
+My raw reactions (“this sounds like Cobra from G.I. Joe,” “greed put us here,” etc.) – left in on purpose because that’s how I remember it
+Direct ties back to water/wastewater realities (backflow nightmares, unpatched XP boxes, zero budget, etc.)
+Occasional “oh shit” moments when something hits way too close to home
+
+These are living study notes. I’m adding chapters as I grind through them. If you’re in critical infrastructure (water, power, telco, wastewater, whatever), maybe some of this will help you translate the doom-scroll into something you can actually act on tomorrow morning.
+Bottom line
+The report is terrifying.
+Drinking it in anyway feels like purpose.
+Pull up the PDF, grab a coffee (or an energy drink, no judgment), and come learn with me.
+– A very caffeinated water operator who now sleeps a little lighter
+December 2025
