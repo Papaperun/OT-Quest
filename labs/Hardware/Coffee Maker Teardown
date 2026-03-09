@@ -1,0 +1,14 @@
+Coffee Maker Teardown — Lab Notes
+Date: 2026-03-09
+Initially pulled this machine apart assuming it had a pump — intended to scrap it for the pump component. After teardown, discovered it actually operates on a thermosiphon principle (passive water transfer driven by heat and density differential, no mechanical pump).
+Decided to repurpose the unit for the lab instead of scrapping it.
+Parts Retained
+
+Thermosiphon tube assembly
+Thermal fuse (non-resettable, check temp rating)
+Thermostat (bimetal, resettable)
+
+Next Steps
+Will integrate the thermosiphon assembly into the lab environment as a process control demonstration — see notes on that later.
+
+Tags: teardown, thermosiphon, process control, ICS lab, hardware inventory
