@@ -1,0 +1,106 @@
+ALKAHEST BUILD LOG
+OT-Quest Portable Wireless Audit Platform
+Session Date: April 9, 2026
+1. ARCHITECTURE OVERVIEW
+Alkahest is a self-contained portable wireless audit platform. Every component has a defined role:
+ESP32 WROOM (Marauder) — the wireless tool. Does the active work: beacon spam, deauth, probe sniffing, PMKID capture, Bluetooth scanning.
+Raspberry Pi Zero W — the brain and relay. Manages serial comms to ESP32, runs Python scripts, hosts the SSH access point.
+Anker Battery — powers both devices independently via USB.
+Tablet/Phone — your terminal window. SSH into Pi over Alkahest hotspot.
+Full control chain:
+Tablet -> SSH -> Alkahest hotspot (Pi Zero W) -> USB serial -> Marauder (ESP32)
+Why the Pi Zero W is relay-only
+The Pi Zero W (2017, original model) is single-core ARMv6 with 512MB RAM. Kismet will choke it. This is not a limitation — it is a role definition. The Zero W manages comms, runs lightweight Python, and hosts the hotspot. The ESP32 does the capture work.
+Note: Do not confuse this with the Pi Zero 2W (quad-core). This build uses the original single-core Zero W.
+2. ESP32 MARAUDER — FLASHING
+Hardware identified
+Board: ESP32-WROOM-32 generic dev board (30-pin, micro USB, EN and BOOT buttons)
+Flash: 4MB (auto-detected by flasher)
+Flasher tool: esp.huhn.me (Spacehuhn web flasher, Chrome)
+Firmware selection
+Source: github.com/justcallmekoko/ESP32Marauder/releases
+File selected: esp32_marauder_v1_11_0_20260310_old_hardware.bin
+IMPORTANT: 'old_hardware' is NOT outdated firmware. It is the correct build for generic WROOM dev boards that are not official Marauder hardware. Do not select CYD, v7, mini, or S3 builds for this board.
+Flash address map (WROOM)
+0x1000   -> bootloader
+0x8000   -> partitions
+0xE000   -> boot_app0
+0x10000  -> esp32_marauder_v1_11_0_20260310_old_hardware.bin
+Verify Marauder is running
+After flashing, open the TERMINAL button in esp.huhn.me, press EN (reset button) on the board. You should see:
+ESP-IDF version is: v5.x.x
+Failed to mount SD Card  <- NORMAL, no SD card attached
+GPS Not Found           <- NORMAL, no GPS module
+Type 'help' to confirm all commands are available. SD card and GPS errors are expected and harmless.
+3. PI ZERO W — OS AND BASE CONFIG
+System baseline
+OS: Raspberry Pi OS Lite 32-bit
+Kernel: 6.12.75+rpt-rpi-v6 (armv6l)
+Python: 3.13.5
+Git: 2.47.3
+Nmap: 7.95 (pre-installed bonus)
+Packages installed
+sudo apt install hostapd dnsmasq -y
+hostapd = creates the Wi-Fi access point. dnsmasq = handles DHCP (gives devices an IP when they connect).
+4. ALKAHEST HOTSPOT CONFIGURATION
+The Pi Zero W broadcasts its own Wi-Fi network called Alkahest. Your tablet connects to this network and SSHes in. No external internet required — fully self-contained.
+The NetworkManager problem
+Raspberry Pi OS uses NetworkManager to manage Wi-Fi. By default it will connect wlan0 to any saved home network , overriding hostapd before it can start.
+WARNING: Deleting the home network connection will immediately drop SSH access if you are connected via that network. Always have a keyboard/monitor fallback or ensure hostapd will come up before cutting the home connection.
+Files configured
+/etc/dhcpcd.conf (appended)
+interface wlan0
+    static ip_address=192.168.4.1/24
+    nohook wpa_supplicant
+/etc/hostapd/hostapd.conf (created)
+interface=wlan0
+driver=nl80211
+ssid=test
+hw_mode=g
+channel=7
+wpa=2
+wpa_passphrase=password blank 
+wpa_key_mgmt=WPA-PSK
+/etc/default/hostapd (created)
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+/etc/dnsmasq.conf (created)
+interface=wlan0
+dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+/etc/rc.local (created — boot persistence)
+#!/bin/bash
+ip addr add 192.168.4.1/24 dev wlan0
+exit 0
+Why rc.local exists: dhcpcd.conf alone was not assigning the static IP because NetworkManager was claiming wlan0 first. rc.local forces the IP assignment at boot after all services are up.
+5. CURRENT STATUS
+Marauder flashed on ESP32 WROOM
+Pi Zero W running Pi OS Lite 32-bit
+hostapd and dnsmasq installed and enabled
+Alkahest SSID broadcasting on wlan0
+SSH access confirmed from tablet over Alkahest
+rc.local configured for boot persistence
+
+6. NEXT SESSION — STEPS REMAINING
+Step 1: Reboot test
+Reboot the Pi. Alkahest should broadcast automatically. Connect tablet to Alkahest (password: FullMetal88). SSH in:
+ssh link@192.168.4.1
+Step 2: Connect ESP32 to Pi
+Plug ESP32 into Pi Zero W via micro USB OTG port. Verify Pi sees it:
+ls /dev/ttyUSB*
+Step 3: Install serial terminal
+sudo apt install screen -y
+Step 4: Talk to Marauder
+Open a serial connection from Pi to ESP32:
+screen /dev/ttyUSB0 115200
+You should see Marauder's prompt. Type 'help' to confirm. This is the full chain operational: Tablet -> SSH -> Pi -> serial -> Marauder.
+7. CONCEPTS — WHAT YOU ACTUALLY LEARNED
+Firmware flashing
+Flashing replaces the factory firmware on the ESP32 with Marauder. Same chip, new OS. Identical concept to reimaging a machine. The four .bin files map to specific memory addresses — bootloader, partition table, boot app, and main firmware. Each must go to the correct address or the device will not boot.
+hostapd vs dnsmasq
+hostapd creates the access point — it makes the Pi broadcast a Wi-Fi SSID. dnsmasq handles DHCP — when your tablet connects, dnsmasq assigns it an IP address from the range 192.168.4.2-20. Without dnsmasq, devices connect but get no IP and cannot communicate.
+Why the IP kept disappearing
+NetworkManager claimed wlan0 before hostapd could assign the static IP. dhcpcd.conf told the system what IP to use, but NetworkManager ignored it and connected to the home router instead. The fix was manually assigning the IP with 'ip addr add' and then making that permanent via rc.local so it runs on every boot.
+Serial communication
+The ESP32 appears as /dev/ttyUSB0 when plugged into the Pi. This is a serial device — the Pi and ESP32 talk via UART over USB at 115200 baud. The 'screen' command opens a terminal session over that serial link. This is the same protocol used in industrial equipment, PLCs, and legacy SCADA systems.
+SHA256 and why it matters
+When SSH shows a host fingerprint SHA256 hash, it is asking you to verify you are connecting to the correct machine and not an impersonator (MITM attack). If the hash changes unexpectedly, something is wrong. You verified this instinctively because of Security+ prep — that knowledge is already operational.
+OT-Quest | Alkahest Platform | Built by Joshua | April 2026
