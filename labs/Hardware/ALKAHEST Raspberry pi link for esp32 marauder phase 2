@@ -1,0 +1,116 @@
+ALKAHEST BUILD LOG — PHASE 2
+Platform Migration, Marauder Integration, and Strategic Pivot
+Session Dates: April 10-12, 2026
+1. SESSION OVERVIEW
+This phase covers three days of work following the initial Alkahest Zero W build (Phase 1). The primary goals were to get Marauder fully operational via serial communication, migrate the platform from the Pi Zero W to the Pi 5 for improved performance, and make a reasoned decision about Marauder's role in the OT-Quest lab. The session involved significant troubleshooting, architecture pivots, and deliberate scope management.
+2. ARCHITECTURE EVOLUTION
+Phase 1 architecture (Pi Zero W)
+Tablet -> SSH -> Alkahest hotspot (Pi Zero W) -> USB serial -> Marauder (ESP32)
+Limitation discovered: Pi Zero W (2017, single-core ARMv6, 512MB RAM) could not run Kismet due to resource constraints. ESP32 hot-plug caused USB brown-out reboots. Serial communication via minicom suffered from lag and port re-enumeration instability.
+Phase 2 architecture (Pi 5)
+PC/Tablet -> SSH -> Pi 5 (Raspberry Pi OS) -> USB serial -> Marauder (ESP32)
+Pi 5 (quad-core, 4GB RAM) provides stable USB power delivery, sufficient RAM for Kismet, and full desktop environment. Wired ethernet for internet, no hotspot required for lab use. ESP32 connects via USB with stable serial communication.
+3. ISSUES ENCOUNTERED AND RESOLUTIONS
+Issue: ESP32 hot-plug caused Pi Zero W reboots
+Root cause: Pi Zero W USB port insufficient power delivery for ESP32 under load
+Symptom: Multiple /dev/ttyUSB* ghost devices accumulating, not true brown-outs (HDMI never dipped)
+Resolution: Migrated to Pi 5 with proper USB power delivery
+Issue: Kali Linux ARM image corruption
+Root cause: Known bug in Raspberry Pi Imager v2.0.0-2.0.7 causing SHA256 hash mismatch on download
+Additional issue: Kali ARM64 image for Pi 5 not available as standalone download — imager only
+Additional issue: armhf image downloaded instead of arm64 — wrong architecture for Pi 5
+Resolution: Switched to Raspberry Pi OS (Trixie/Bookworm 64-bit) as base OS, install required tools manually
+Issue: USB dongle boot order interference
+Root cause: Pi 5 boot order prioritized USB-MSD over SD card when USB keyboard/mouse dongle present at power-on
+Resolution: Insert SD card before plugging in USB dongle at boot
+Issue: Kismet installation failure
+Root cause: Pi OS Trixie uses sqv for GPG verification, deprecated apt-key method fails
+Secondary issue: Kismet signing key 404 URL changed, required curl method instead of wget
+Tertiary issue: apt install stalled on slow Kismet servers — required direct .deb approach
+Final working installation method:
+curl -s https://www.kismetwireless.net/repos/kismet-release.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/kismet-archive-keyring.gpg > /dev/null && echo 'deb [signed-by=/usr/share/keyrings/kismet-archive-keyring.gpg] https://www.kismetwireless.net/repos/apt/release/trixie trixie main' | sudo tee /etc/apt/sources.list.d/kismet.list && sudo apt update && sudo apt install kismet -y
+Issue: Marauder serial communication lag and unresponsiveness
+Root cause: Generic WROOM dev board CP210x USB-serial chip re-enumerates under load
+minicom and screen both struggled with Marauder's streaming output model
+Solution found: Python pyserial with threading for continuous output reading
+scanap confirmed working — returned live SSID/BSSID/channel/signal data from surrounding environment
+4. MARAUDER PYTHON INTERFACE SCRIPT
+Saved as ~/marauder.py on the Pi 5. Run with: python3 ~/marauder.py
+import serial
+import time
+import threading
+
+s = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+print('Connected to Marauder. Type commands (quit to exit):')
+
+def read_output():
+    while True:
+        if s.in_waiting:
+            print(s.read(s.in_waiting).decode('utf-8', errors='ignore'), end='')
+        time.sleep(0.1)
+
+t = threading.Thread(target=read_output, daemon=True)
+t.start()
+
+while True:
+    cmd = input()
+    if cmd == 'quit':
+        break
+    s.write((cmd + '\r\n').encode())
+
+s.close()
+5. CONFIRMED WORKING MARAUDER COMMANDS
+scanap — scans for Wi-Fi access points. Returns RSSI, channel, BSSID, SSID, encryption flags
+stopscan — stops any active scan
+help — lists all available commands
+scansta — scans for client stations (requires passive listening period, 30-60 seconds)
+Sample scanap output observed: sanitize 
+-81 Ch: 5 00:00:00:00:00:00 ESSID: Routername 11 15-84
+6. HOW TO READ SCANAP OUTPUT
+Format: [RSSI] Ch: [channel] [BSSID] ESSID: [network name] [encryption] [flags]
+RSSI (e.g. -81) — signal strength in dBm. Closer to 0 is stronger. -50 is strong, -90 is weak
+Ch — WiFi channel (1-13 for 2.4GHz, higher for 5GHz)
+BSSID — the router's MAC address. This is publicly broadcast by design, not private information
+ESSID — the network name (SSID)
+11/31 — encryption flags (11 = WEP, 31 = WPA/WPA2)
+7. STRATEGIC DECISION — MARAUDER DEPRIORITIZED
+After four days of work, a deliberate decision was made to deprioritize Marauder integration and focus the Pi 5 platform on OT-relevant tools. This was not a failure — it was a reasoned engineering decision.
+What Marauder does
+Deauth attacks (802.11 management frame injection)
+Beacon spam (fake SSID flooding)
+PMKID capture (offline WPA2 cracking)
+Bluetooth scanning and device enumeration
+What the OT-Quest lab actually needs
+Kismet — detecting unauthorized wireless near ICS infrastructure
+Nmap — network discovery and device enumeration on Modbus TCP networks
+Wireshark — Modbus TCP packet capture and protocol analysis
+Python serial — communicating with PLCs and industrial devices
+Conclusion
+Marauder is an offensive wireless tool. The OT-Quest mission is defensive ICS security. Marauder is documented, understood, and functional — it serves the portfolio. But further time chasing serial interface issues with a generic dev board has diminishing returns versus the OT-focused toolchain. The $7 dedicated Marauder screen or a proper web UI (marauder-ui or custom Flask) remains a future option when the ROI makes sense.
+8. CURRENT PLATFORM STATUS
+Pi 5 running Raspberry Pi OS 64-bit (Trixie)
+Kismet installed and operational
+Nmap, aircrack-ng, minicom, screen, tmux, python3-serial installed
+Marauder flashed on ESP32 WROOM, confirmed working via Python serial
+marauder.py script saved at ~/marauder.py
+Pi Zero W Alkahest hotspot still functional as backup/field relay
+Wired ethernet on Pi 5 — stable internet, no NetworkManager fighting
+9. NEXT STEPS
+Configure Kismet with Alfa dongle — plug in dongle, verify wlan1 appears, run kismet --source wlan1
+Reconnect MicroLogix 1100 PLC and verify Modbus TCP communication on Pi 5
+Run turbidity_sim.py against PLC from Pi 5, capture traffic in Wireshark
+Document SCADA cascade incident as OT-Quest Case Study 3
+Begin Python fundamentals (May) — first project: text parser for Marauder or Kismet output
+10. LESSONS LEARNED
+Technical
+ARM architecture matters — armhf (32-bit) vs arm64 (64-bit) are not interchangeable. Pi 5 requires arm64
+Generic dev boards have limitations dedicated hardware does not — CP210x serial instability under load is real
+Trixie/Bookworm GPG key handling changed — apt-key is deprecated, sqv is the new verifier
+Streaming serial output needs threading, not sequential read/write
+Boot order on Pi 5 is USB-first by default — always insert SD card before USB devices at power-on
+Strategic
+Know when to stop and why. Four days on Marauder taught everything needed to document and deprioritize it intelligently
+Post-goal drift is real. After Security+, the compulsion to keep pushing produced diminishing returns. Recognizing it is the fix
+Workspace organization directly impacts troubleshooting efficiency. A clean lab reduces friction
+Every wall hit in this build is more valuable portfolio material than a smooth tutorial follow-along would have been
+OT-Quest | Alkahest Platform Phase 2 | Built by Joshua | April 2026
