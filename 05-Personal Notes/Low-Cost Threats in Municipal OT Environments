@@ -1,1 +1,88 @@
+Low-Cost Threats in
+Municipal OT Environments
+A Practitioner Perspective on the Trust-Based Defense Model
 
+
+Joshua Brunner  |  April 2026
+Class A Water Treatment Operator (TX)  |  CompTIA Security+ SY0-701  |  ISC2 CC
+Section 1 — The Assumption Has Expired
+
+
+Over two decades working in municipal water and wastewater operations, my threat model looked like most of my peers — gates, fences, locks, and the assumption that physical barriers were the primary defense. The question was always who could get over the wall, not what they could carry in their pocket.
+That assumption has an expiration date that most utilities have not acknowledged yet.
+The emergence of low-cost, commercially available hardware tools represents a category of threat that operates beneath the detection floor of most small and mid-sized municipal OT environments. These are not nation-state tools. They do not require deep technical expertise. Some can be purchased, powered on, and create downstream effects by someone who does not fully understand what they are holding.
+Meanwhile, the protocols running our most critical processes were designed for availability, not authentication. Modbus TCP does not handshake every command — it was not built to. That tradeoff made sense when the network was air-gapped and the only people near it wore boots. That world is largely gone.
+We spend considerable energy worrying about state-sponsored actors — sophisticated, well-resourced, deliberate. But the more realistic near-term threat in many facilities is far less cinematic. It is a USB drive found in a parking lot. It is a device carried in by a vendor who did not know what was in their bag. It is an action that leaves no alarm, no log, and no indication anything happened at all.
+Our current posture in many of these environments rests almost entirely on two pillars: the deterrence of federal criminal penalties, and the assumption that everyone with access has been adequately vetted by someone. Neither of those is a technical control.
+Section 2 — The Tool Does Not Care About Your Policy
+
+
+The devices below are commercially available, inexpensive, and require no meaningful technical background to operate. They are not theoretical threats. They are sold openly, used recreationally, and demonstrated publicly.
+What follows is not a technical manual — it is an accounting of what assumption each one defeats in a typical municipal OT environment.
+Flipper Zero
+The Flipper Zero reads, copies, and emulates transmitted signals across RFID, NFC, infrared, and sub-GHz radio frequencies. In practical terms, this means a device the size of a TV remote can silently clone the access badge of anyone who walks past it, then replay that credential to open the same doors.
+Many municipal facilities still rely on legacy 125 kHz RFID systems — older card formats that are often vulnerable to read-and-replay attacks, while only more modern encrypted standards offer resistance to cloning.
+Assumption defeated: our perimeter access controls verify who enters the facility.
+Bad USB / Rubber Ducky
+A Rubber Ducky attack uses a device that looks like an ordinary USB drive but presents itself to any computer as a trusted keyboard, executing pre-programmed commands the moment it is inserted.
+When plugged in, it can execute a payload that types commands at machine speed — fast enough to open a remote connection, download a tool, and establish persistence before an operator looks back at the screen.
+In OT environments, HMI workstations with exposed USB ports and no device controls are a direct attack surface. USB drives are routinely used to transfer files between disconnected systems — a practice that makes the environment structurally dependent on the same vector being exploited.
+Assumption defeated: we control what runs on our systems because we control who has access to them.
+ESP32 Marauder
+The ESP32 Marauder exploits weaknesses in wireless protocols — specifically the lack of authentication in deauthentication packets — allowing it to forcibly disconnect devices, clone legitimate access points, and capture authentication handshakes.
+In a flat OT network where wireless-connected HMIs or vendor laptops share the same space as control systems, a device smaller than a deck of cards can passively map the network or actively disrupt communications. No login required.
+An operator reconnecting to what appears to be the facility's wireless network may instead be connecting to a cloned access point.
+Assumption defeated: our wireless environment is controlled because access requires a password.
+The Unnamed Device
+There is a fourth category worth naming without assigning a brand: the rogue node.
+A small, preconfigured device — battery-powered, headless, and requiring no interaction after placement — can be introduced into a facility by anyone with brief unsupervised access. A contractor, a vendor, a cleaning crew. It listens, maps, and waits.
+In most municipal environments, there is nothing that generates an alert for its presence.
+Assumption defeated: we would know if something was on our network that should not be.
+Section 3 — We Would Not Know
+
+
+The most uncomfortable truth in this discussion is not that these tools exist. It is that in most small and mid-sized municipal water and wastewater environments, their use would produce no alert, no log entry, and no visible anomaly. Operations would continue normally. The event would be invisible.
+Modbus TCP does not log who asked for what. It responds. That is its design — availability over accountability. A turbidity reading gets polled, a valve gets commanded, a pump status gets returned. The protocol does not distinguish between the SCADA workstation that has been polling that register for fifteen years and a device that started asking the same question six minutes ago from a different IP address.
+A legitimate command and a malicious one are indistinguishable at the protocol level.
+Most facilities at this scale do not have network intrusion detection. They do not have OT-specific monitoring tools. They do not have a baseline of what normal traffic looks like, which means anomalies have nothing to be measured against.
+Flat network architecture compounds this. A rogue device, once present, exists on the same plane as the historian, the HMI, and the process controller — with nothing enforcing what it can or cannot reach.
+Vendor access adds another layer. A technician connects a laptop to commission equipment or pull diagnostics. That laptop's security posture is unknown. What it introduced to the network is unknown. What it left behind is unknown. The session ends. The technician leaves. The network returns to what appears to be normal.
+There is no malice required in any of these scenarios.
+The parking lot USB.
+The vendor laptop.
+The contractor who propped a door.
+These are not Hollywood attacks. They are Tuesday.
+Section 4 — The Gap Statement
+
+
+This document is not a vendor recommendation. It is not an indictment of any individual, facility, or administration. The people operating these systems are doing their jobs under real constraints — staffing shortages, aging infrastructure, and budgets that were never designed to absorb cybersecurity as a parallel requirement.
+But these tools do not wait.
+The individuals drawn to them do not all look the same. Some are inexperienced, operating out of curiosity or the desire to prove that something works. Others are deliberate and understand exactly what they are doing. In practice, that distinction matters less than expected. The outcome can be the same.
+These tools do not require expertise to create impact, and they do not account for operational context. They do not recognize what a pump is moving, what pressure it is under, or what happens downstream if it stops and starts unexpectedly. They only confirm that a command was accepted.
+They do not care about budget cycles, staffing levels, or operational constraints. They only care that it works.
+The gap between what these environments face and what they are currently equipped to detect is not a failure of effort. It is a structural condition.
+The path forward does not have to begin with a large capital investment. It can begin the same way many operational improvements have — with awareness. Operators learned what flushable wipes do to a pump station because someone explained it in terms that mattered. The same approach applies here.
+The question is not whether these facilities can afford to address this.
+The question is whether they can afford not to.
+Section 5 — What Acting On This Would Actually Look Like
+
+
+The gap described in this document does not require a complete redesign of the system to begin addressing. It can be reduced through small, deliberate changes that fit within the operational and budget constraints common to municipal environments.
+The first change is procedural. Unknown USB devices should never be inserted into any system under any circumstance. A device without a known origin should be treated the same as any unknown substance introduced into a process: isolate it and report it.
+Physical access assumptions should also be revisited. Doors and access points that are treated as low-risk still function as part of the control boundary. A secured door that is routinely propped open is not a control.
+At the workstation level, exposure can be reduced. Systems that do not require USB access can have those ports disabled or physically blocked. This does not need to be universal to be effective.
+Basic visibility can be introduced without dedicated tools. A periodic network scan using freely available utilities can establish a baseline of what devices are present. It does not provide real-time detection, but it answers a question that often goes unasked: what is actually connected.
+Vendor access should be treated as a controlled activity rather than an assumed trust boundary. External devices represent an unknown security posture. Limiting access to the minimum necessary scope and maintaining awareness during those sessions reduces risk without preventing necessary work.
+Wireless networks require a similar shift in assumption. A password does not make a network private — it makes it restricted. Where wireless intersects with operational systems, separation should be introduced where feasible. Where it cannot be, the network should be treated as observable and potentially influenced by anyone within range.
+None of these actions require a capital project. None require specialized cybersecurity expertise. They are incremental, imperfect, and incomplete.
+They are also achievable.
+The goal is not to create a fully secure system. That is not a realistic claim at this scale. The goal is to move the environment out of a state where low-cost, low-effort tools can operate without friction, without visibility, and without resistance.
+That is the starting point.
+
+
+The system will continue to operate — whether the commands it receives are intentional or not.
+
+
+About the Author
+Joshua Brunner is a Class A licensed water treatment operator in Texas with 22 years of experience operating municipal water/wastewater infrastructure, including surface water treatment facilities utilizing DCS, SCADA, and industrial control systems. He holds credentials in cybersecurity (CompTIA Security+ SY0-701, ISC2 CC). His work bridges operational technology and security  informed by daily proximity to the systems described in this report.
+GitHub: github.com/Papaperun/OT-Quest     LinkedIn: linkedin.com/in/joshua-brunner-098195270
