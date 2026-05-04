@@ -1,0 +1,109 @@
+# Chlorine Dosing Rotometer Simulator
+**Author:** Joshua Brunner  
+**Date:** 2026-05-04  
+**Repository:** github.com/Papaperun/OT-Quest
+
+---
+
+## Overview
+
+A Python/pygame simulation of a chlorine dosing rotometer used in municipal water treatment. Built from operational experience as a Class A Water Treatment Operator with 22+ years in municipal water systems.
+
+This is not a generic PLC demo. Every parameter in this simulator reflects real world water treatment operational limits.
+
+---
+
+## What It Simulates
+
+A rotometer is a flow measurement device used to monitor chemical feed rates in water treatment. This simulator models a chlorine dosing rotometer scaled to:
+
+- **Flow range:** 0–24 MGD (Million Gallons Per Day)
+- **Signal range:** 4–20mA (industry standard analog signal) # not yet wired in 
+- **Dosage range:** 0–10 mg/L (realistic for a pure water source)
+- **Output range:** 0–800 lbs/day chlorine demand
+
+---
+
+## The Math
+
+```
+lbs/day = Flow (MGD) × 8.34 (lbs/gallon) × Dosage (mg/L)
+```
+
+This is the standard water treatment dosing formula. The 8.34 conversion factor is the weight of one gallon of water in pounds.
+
+**4-20mA scaling:**
+```
+mA = ((flow / 24) * 16) + 4
+```
+- 0 MGD = 4mA
+- 24 MGD = 20mA
+
+---
+
+## Controls
+
+| Key | Action |
+|-----|--------|
+| W | Increase flow +1 MGD |
+| S | Decrease flow -1 MGD |
+| D | Increase dosage +1 mg/L |
+| A | Decrease dosage -1 mg/L |
+
+---
+
+## Features
+
+- Input validation — rejects values outside operational boundaries before entering the system
+- Live display — flow, dosage, and lbs/day update in real time
+- Ball position tracks dosage output scaled 0–800 lbs/day
+- Physical limits — ball cannot exceed sight glass boundaries
+- Real water treatment parameters throughout
+
+---
+
+## Security Relevance
+
+This simulator represents the **HMI/display layer** of a chemical dosing system. The input validation built into the user interface is intentionally bypassed when values are written directly to process registers over Modbus TCP.
+
+A Modbus write to the flow or dosage register:
+- Skips all input validation
+- Accepts any value regardless of operational boundaries
+- Updates the display and recalculates output immediately
+- Generates no authentication challenge
+
+This demonstrates **MITRE ATT&CK for ICS T0836 — Modify Parameter** at the process level.
+
+Phase 2 of this project will expose these registers over unauthenticated Modbus TCP to demonstrate the attack surface. This simulator becomes the target.
+
+---
+
+## Why This Exists
+
+Built as part of a broader OT security lab (OT-Quest) to demonstrate that ICS vulnerabilities are not abstract — they live in the same systems that treat drinking water for real communities.
+
+The rotometer is dead simple. The implications are not.
+
+---
+
+## Requirements
+
+```
+pygame
+```
+
+```bash
+pip install pygame
+```
+
+---
+
+## Related Lab Work
+
+- `MicroLogix1100_SnakeDamage_LabReport.md` — Hardware autopsy that led to this build
+- CL17 Chlorine Analyzer Simulator — Modbus TCP feed simulation
+- OT-Quest Roadmap — Full ICS security lab progression
+
+---
+
+*Class A Water Treatment Operator License (Texas, Active) · CompTIA Security+ SY0-701 · ISC2 CC*
