@@ -1,0 +1,94 @@
+Why “Loud” Doesn’t Matter in OT Networks
+A Practitioner’s Look at Network Visibility in Municipal Water and Wastewater Operations
+Joshua Brunner | github.com/Papaperun/OT-Quest | linkedin.com/in/joshua-brunner-098195270
+Introduction
+This paper is written for operations professionals — the people who run the systems, not the people who design security frameworks. If you have spent time in a control room, at a panel board, or watching trends on a historian screen, this is written for you. The goal is not to alarm you. The goal is to show you something that is already happening, explain why it matters, and give you a simple way to see it for yourself.
+In April 2026, I built a Modbus server simulation in my home lab and scanned it with a free network tool called Nmap. It took one command and six seconds to find it. Nothing alerted. This paper explains what that means for the facilities we operate every day.
+What Is Nmap?
+Nmap is a free, open-source network scanning tool that has been available to the public since 1997. Think of it like a knock on every door in a neighborhood. You run one command, point it at a network, and it tells you what devices are online, what ports are open, and in many cases what kind of device or service is running behind that port.
+It is widely used by IT security professionals, network administrators, and unfortunately, attackers. It requires no special skill to run. It is free to download. It runs on any laptop.
+What Is Modbus?
+Modbus is a communication protocol that has been used in industrial control systems since 1979. If you have a PLC talking to an HMI, or a chemical dosing pump reporting status back to a control system, there is a good chance Modbus is the language they are speaking. It is reliable, simple, and everywhere in water and wastewater operations.
+It was designed in an era when these systems were completely isolated. There was no internet. There was no remote access. Security was not part of the design because connection to the outside world was not part of the design. That world no longer exists, but the protocol is still running.
+One of the most important things to understand about Modbus is that it does not verify who is talking to it. It will respond to any device that sends it a valid request. There is no handshake, no authentication, no check to confirm the request is coming from a trusted source. It was not built for that. It was built to be simple and fast.
+The Demonstration
+I set up a Modbus TCP server simulation on my home network using Python and a library called pyModbus. I then ran the following Nmap command from a separate machine on the same network:
+nmap -p 5020 192.168.x.x/24
+This command scanned every device on the local network for port 5020, the port my simulation was running on. Port 5020 was used for the simulation to avoid conflicts on my home network — in a real environment, an attacker would scan port 502, the standard Modbus port. The result came back in six seconds on my small home network. A larger facility network would take longer — but an attacker is not in a hurry, and there is nothing watching the clock.
+Nmap Scan Results — Sanitized
+Host ID
+Vendor
+Port 5020 State
+Node-01
+Mesh Network Node
+Closed
+Node-02
+Mesh Network Node
+Closed
+Node-03
+Unknown Device
+Closed
+Node-04
+Unknown Device
+Closed
+Node-05
+Media Streaming Device
+Closed
+Node-06
+Workstation
+Filtered
+Node-07
+Smart Home Device
+Filtered
+Node-08
+Smart Home Device
+Filtered
+Node-09
+Unknown Device
+Closed
+Node-10
+Media Streaming Device
+Closed
+Node-11
+Unknown Device
+Closed
+Node-12
+Mobus Workstation
+Open
+
+Note: Port 5020 (Modbus-adjacent service port) was found open on one host. All other hosts returned closed or filtered states. MAC addresses and private IP ranges have been removed for sanitization.
+Wireshark Packet Capture — Sanitized
+1997  123.030773700  192.168.x.x  192.168.x.x  TCP  54  5020 → [PORT]  [RST, ACK]  Seq=1 Ack=1 Win=0 Len=0
+1998  123.046184700  192.168.x.x  192.168.x.x  TCP  54  5020 → [PORT]  [RST, ACK]  Seq=1 Ack=1 Win=0 Len=0
+1999  123.033836200  192.168.x.x  192.168.x.x  TCP  54  5020 → [PORT]  [RST, ACK]  Seq=1 Ack=1 Win=0 Len=0
+2000  123.110704600  192.168.x.x  192.168.x.x  TCP  54  5020 → [PORT]  [RST, ACK]  Seq=1 Ack=1 Win=0 Len=0
+2001  123.118095700  192.168.x.x  192.168.x.x  TCP  54  5020 → [PORT]  [RST, ACK]  Seq=1 Ack=1 Win=0 Len=0
+Each line above is Nmap knocking on a door. RST ACK means the port is closed — the host replied with nothing here. Every probe is visible on the wire. All of it logged in real time. None of it alerted anyone.
+To confirm what the scan looked like on the wire, I also ran Wireshark simultaneously. Wireshark is a free tool that lets you watch network traffic in real time. Think of it like standing next to a pipe and being able to see everything flowing through it. The Wireshark capture showed every probe packet Nmap sent — every knock on every door — visible and logged in real time.
+Here is what the three views looked like:
+Attacker view: Full network inventory returned in 6 seconds. Modbus server identified with port status open.
+Network view: Wireshark captured every probe packet in real time. Every scan request visible on the wire.
+Defender view: Nothing. No alert. No log. No notification. Silence.
+
+The Wireshark capture was only visible because I was already sitting there watching. Nobody in a typical municipal OT environment has Wireshark running. Nobody is watching that traffic. The scan happened, the server was found, and the historian just kept logging tank levels like nothing occurred.
+The Detection Gap
+In IT environments — banking, corporate networks, larger government systems — a scan like this would likely generate an alert. There are systems called SIEMs that aggregate logs from across the network and flag unusual activity. There are security operations centers with analysts watching those alerts. A port scan generates logs. Those logs go somewhere. Someone sees them.
+In most municipal OT environments, none of that infrastructure exists. This is not negligence. It is the result of a technology gap that moved faster than operations could follow. Most of the tools and protocols running in our facilities were designed and installed before cybersecurity was a consideration for this industry. The historian that shows you a pump turned on or a pressure changed was not built to tell you someone was knocking on the door before that happened. From an operator's perspective, nothing changes on the screen. Pumps run, levels trend, alarms behave normally. The scan is invisible because there is nothing designed to make it visible.
+That gap is the point. Not the tool. The tool is just a knock. The problem is that nobody built a doorbell.
+This is also why the term “loud” loses its meaning in OT. In IT security, we say Nmap is loud because detection systems will see it. In an OT environment with no detection layer, there is no loud or quiet. There is only seen and unseen. Right now, almost everything is unseen.
+It is worth noting that Nmap offers scan types often described as “stealth” — the most common being the SYN scan (-sS). The idea is that by never completing a full TCP handshake, the scan avoids showing up in application-layer logs. That part is technically true. But stealth only means something if something is listening at the network layer. A SYN scan still generates packets on the wire. Wireshark sees every one of them. Any network monitoring tool would too. The scan is only quiet relative to tools that are already there. In most municipal OT environments those tools are not there. Whether an attacker runs the loudest scan or the quietest one, the result is the same — nobody sees it.
+What You Can Do About It
+⚠  IMPORTANT — READ BEFORE YOU DO ANYTHING
+Do not run Nmap or any network scanning tool on any system you do not own or have explicit written authorization to scan. This is not a suggestion. Unauthorized scanning of industrial control systems and OT networks can cause real operational disruption — devices can lock up, communications can drop, processes can behave unexpectedly. In a water or wastewater facility, that has consequences beyond a crashed computer.
+The demonstration in this paper was performed on an isolated home lab simulation that I built, own, and am solely responsible for. If you want to try this yourself, do it on your own isolated lab environment, or obtain written authorization from your operations leadership and document it before you run a single command. Own the outcome before you run the scan.
+The same tool that an attacker can use to find your assets is a tool you can use to know what you have. Asset inventory is one of the hardest problems in small municipal OT. Most facilities do not have a complete, current picture of every device on their network. Nmap can help build that picture — but only when used correctly and with full authorization.
+Running a periodic authorized scan of your own OT network gives you a baseline. Once you know what normal looks like, anything new stands out. A device that was not there last week and is there today is worth a question. That question might have a good answer. Or it might not.
+This process can be scripted to run automatically. It does not require expensive software. It does not require a security operations center. It requires a scheduled scan, a saved baseline, and someone who looks at the difference.
+It can also run on low-cost hardware no bigger than a credit card. A Raspberry Pi Zero W2 can run Nmap on a scheduled basis and report results. The software is free. The visibility it provides costs nothing but the time to set it up.
+Closing Thought
+This is not written to say our facilities are under active attack. It is written to say that if they were, we would probably not know. The same scan that took six seconds in my home lab might take an attacker considerably longer on a larger facility network. But that is not the point. The point is that nobody is looking for it. The scan runs. The results come back. And the historian just keeps logging tank levels like nothing happened.
+Nothing.
+The tool is not the threat.
+The missing visibility is.
+Joshua Brunner | github.com/Papaperun/OT-Quest | linkedin.com/in/joshua-brunner-098195270
+Class A Water Treatment Operator (Texas, Active) · CompTIA Security+ SY0-701 (2026) · ISC2 Certified in Cybersecurity CC (2025)
