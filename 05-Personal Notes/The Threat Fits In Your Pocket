@@ -1,1 +1,136 @@
+OT-QUEST  |  OPERATOR INTELLIGENCE SERIES
+The Threat Fits in Your Pocket
+Why Disconnecting Internet-Facing PLCs Is Necessary — and Not Enough
+
+
+
+Joshua Brunner
+Class A Water Treatment Operator  |  OT Security Researcher
+OT-Quest  |  June 2026
+
+
+
+
+Why This Paper Exists
+On April 7, 2026, the EPA, FBI, CISA, NSA, Department of Energy, and U.S. Cyber Command jointly confirmed what many in the water sector had feared: Iranian-affiliated threat actors¹ are actively exploiting internet-facing programmable logic controllers at U.S. water, wastewater, and energy facilities. The federal response, appropriately, centers on removing PLCs and HMIs from public internet exposure.
+This paper argues that disconnecting internet-facing devices is a necessary first step — but one that leaves a second attack surface entirely unaddressed. The tools required to reach that surface require no special procurement, no technical sophistication, and no questions at a purchase counter. This paper examines the physical access threat vector that remains after the network door is closed, and argues that culture, physical access controls, and operator awareness are not secondary concerns — they are the next frontier.
+
+
+
+
+A Note on Tooling and Methodology
+The tools referenced in this paper are intentionally low-cost and openly available. Nation-state actors and sophisticated threat groups have access to custom implants, zero-day exploits, and purpose-built OT attack frameworks that far exceed what is described here. This paper does not address that ceiling.
+It addresses the floor — the tools that require no special access, no significant budget, and no questions at a purchase counter. A Raspberry Pi, a USB drive, a thirty-dollar device from an electronics retailer. The choice is deliberate: if a municipal water facility cannot defend against the simplest version of this threat, the sophisticated version is an academic concern. Close the easy doors first.
+Readers looking for analysis of advanced persistent threat tooling in ICS environments are directed to resources from Dragos, CISA, and the broader OT security research community. This series exists to translate that body of work into the language and context of the operator — the person who is already in the room.
+
+A Note to Operators: This Is Not an Attack Manual
+The threat actors targeting U.S. water infrastructure do not need this paper. CyberAv3ngers and groups like them have purpose-built tooling, dedicated infrastructure, and operational playbooks that go far beyond anything described here. They already have their methods.
+This document does not teach an attack. It describes the floor of what is possible so that operators can recognize it — the unfamiliar hardware, the USB drive that should not be there, the contractor behavior that does not feel right. The goal is awareness, not capability.
+Recognition is the first defensive layer. You cannot defend against something you have never been told exists.
+1. The Advisory Is Right. And It Is Not Enough.
+The April 7th joint advisory represents the most significant federal action on water sector OT security in years. Six agencies issuing a coordinated warning is not routine. The targeting of Rockwell Automation Allen-Bradley PLCs — the hardware found in an enormous percentage of U.S. water infrastructure — is not theoretical. Real disruptions have occurred. Facilities have had PLC project files wiped, HMI displays manipulated, and process control configurations altered by actors who were never physically present.
+The mechanism is documented and significant: CyberAv3ngers are using Rockwell Automation’s own Studio 5000 Logix Designer software to establish accepted connections to victim PLCs. They are not exploiting a software vulnerability in the traditional sense — they are using the exact tools that legitimate engineers use to program and maintain these controllers. To most detection tooling, the resulting network traffic looks like normal engineering activity. The advisory’s recommendation — remove those devices from public internet exposure — is correct. And it is the right first step precisely because it eliminates that access path entirely.
+But here is the question the advisory does not answer:
+What does the threat look like after the PLC is no longer internet-facing?
+The answer is: it looks like a USB drive in someone's pocket. It looks like a laptop bag a contractor set down next to a panel. It looks like a phone on a charging cable near an HMI workstation. It looks like every other Tuesday.
+2. The Hollywood Problem
+Before we can talk about the real threat, we have to talk about the imaginary one — because the imaginary one is actively making operators less safe.
+Operators picture a cyber threat as something external and visible. A van full of equipment. A sophisticated remote actor with blinking screens and specialized hardware. Something that looks different from the normal flow of the workday. This mental model comes from television, from news coverage, from the framing of every major breach story: the attacker is out there, and we need to keep them out.
+This framing is not wrong. But it is incomplete in a way that creates a blind spot.
+Operators are trained to recognize physical hazards by what they look like. Confined space entry has a visual checklist. Chemical exposure has a smell and a color. Electrical lockout has a physical lock on a physical panel. We categorize risk by pattern recognition — and we are very good at it. Twenty-three years of operations teaches you to read a panel the way you read a face.
+Cyber threats routed through physical access exploit exactly that training. They present as nothing. There is no checklist for a USB drive that looks like every other USB drive on the shelf. There is no smell for a Raspberry Pi Zero tucked behind a panel. The threat does not trigger any of the pattern-recognition systems operators have spent careers building.
+3. What Actually Fits in Your Pocket
+The following are not hypothetical. These are real, commercially available tools that can be used to attack OT environments from within the physical perimeter.
+Tool
+Cost
+Capability
+OT Risk
+USB Drive
+< $10
+Payload delivery, persistence, credential harvest
+HMI workstations with autorun or unrestricted ports; insertion alone may execute payload
+Raspberry Pi Zero W
+~$12
+Full Linux environment; Modbus client, packet capture, WiFi; gum-stick size
+Concealable inside panels or cable trays; persistent access point on isolated OT segments
+USB Rubber Ducky / HID Spoof
+~$60
+Emulates keyboard; executes attack script in seconds; looks like a USB drive
+Operators routinely plug in USB devices; behavioral pattern is normal; attack is not
+Android Phone + Termux
+$0 extra
+Portable Linux; Modbus tools, network scanners, exploit frameworks; personal device
+Passes every physical checkpoint unchallenged; no one questions a phone
+
+
+4. The Access Question
+Each tool above requires something the remote threat actor behind the April advisory does not have: physical presence. And physical presence is far more common than we account for.
+Consider who has unescorted or minimally supervised access to OT environments in a typical municipal water system:
+Current operators and maintenance staff
+Former employees who may retain knowledge of physical layouts and access habits
+Contractors performing equipment maintenance, calibration, or upgrades
+Chemical vendors with routine delivery and service access
+SCADA integrators and automation vendors performing remote-assist sessions via on-site hardware
+Meter readers and field technicians with access to remote sites and pump stations
+Inspectors, regulators, and auditors with facility-wide access
+
+This is not a list of suspects. This is a list of the people who keep the water running. The point is not that any of them are threats — it is that the threat model has to include the possibility of compromise at any of these points, whether through malicious intent, social engineering, or simple unawareness.
+An Iranian threat actor does not need to breach a network-facing PLC if they can convince a contractor to plug in a device, or if a compromised vendor laptop connects to the local OT network during a legitimate service visit. The remote vector and the physical vector are not separate threat categories. They are different phases of the same attack chain.
+5. Why This Is an Operator Problem, Not Just a Security Problem
+The water sector is staffed overwhelmingly by operators — people whose training, identity, and professional expertise are built around process knowledge, equipment intuition, and public health responsibility. Cybersecurity has historically been treated as something separate: an IT problem, a management concern, a compliance box to check.
+This paper is written to argue against that separation — not because operators should become security analysts, but because the threat described in this paper cannot be detected or prevented by a security analyst who isn't in the room.
+An operator who understands that a USB drive can compromise an HMI is an operator who questions why a contractor plugged something in without asking. An operator who knows what a Raspberry Pi looks like is an operator who notices the unfamiliar piece of hardware in the cable tray. An operator who understands that their process knowledge is itself a target is an operator who thinks twice before answering detailed questions from an unfamiliar vendor.
+Awareness is not a replacement for technical controls. But in an environment where the "security team" may be one person — or no person — and where physical access to critical systems is daily and routine, the operator is the last line of defense the advisory does not address.
+6. What Comes After Disconnection
+The federal guidance is correct: disconnect internet-facing PLCs and HMIs. Remove the remote attack surface. Require strong authentication on anything that remains accessible. This is not optional and it is not enough.
+After disconnection, the following controls become the critical layer:
+6.1  USB Port Control
+HMI workstations and engineering workstations should have USB ports disabled by policy or physically blocked except during controlled, documented maintenance windows. This is not a novel recommendation — it is consistently underimplemented in the water sector.
+6.2  Physical Access Logging and Escort Policies
+Unescorted contractor access to OT environments should be the exception, not the norm. Vendor visits should be logged, time-bounded, and supervised where possible. This is operationally disruptive. It is also the only way to establish a baseline of who touched what and when.
+6.3  Operator Training on Physical Threat Indicators
+Operators should be able to recognize: unfamiliar hardware attached to panels or workstations; USB devices left connected after a vendor visit; unexplained network traffic from the OT segment; HMI behavior that does not match process state. This is not a technical skillset. It is pattern recognition — and operators are already good at pattern recognition.
+6.4  Vendor and Contractor Vetting
+Supply chain compromise is a documented vector in OT environments. Vendor laptops that connect to OT networks should be treated as potential threat surfaces. Contract language should require notification before any device is connected to the OT segment, and session logging where technically feasible.
+6.5  Offline Backups of PLC Project Files
+The April advisory documented attackers wiping PLC project files. An offline, verified backup of every PLC program, HMI configuration, and historian database is the difference between a recoverable incident and a prolonged outage. This backup must be physically secured and tested.
+7. A Note on Low-Cost Threats
+This is the third paper in the Operator Intelligence Series to address low-cost attack tooling. That is not a coincidence and it is not a limitation of the series' scope.
+The water sector is overwhelmingly composed of small and mid-sized utilities with limited budgets, small staffs, and no dedicated security function. The threat actors targeting these facilities include nation-state groups with sophisticated tooling — but the access vectors those groups exploit are not sophisticated. Default passwords. Internet-exposed PLCs. Unmonitored USB ports. Flat networks with no segmentation.
+The recurring theme of this series is not that attackers are unsophisticated. It is that they do not need to be — because the environments they are targeting have not closed the doors that twelve-dollar hardware can walk through.
+Disconnecting internet-facing PLCs closes one of those doors. This paper is about what is standing at the others.
+
+
+
+
+Conclusion
+The April 2026 joint advisory is a landmark document. It confirms active compromise. It names the hardware being targeted. It issues clear guidance. It represents the kind of coordinated federal response the water sector has needed.
+And the moment utilities comply — the moment the last internet-facing PLC is removed from public exposure — the threat does not go away. It walks in through the front door with a visitor badge and a USB drive in its pocket.
+Physical access is the attack surface that no advisory can close from the outside. It requires operators who understand that the threat is real, that it is small, and that it looks like nothing. It requires the people in the room to be the detection layer.
+That is not a burden placed on operators from the outside. It is a recognition of what operators already do — read a room, notice what changed, act on what does not belong. The threat is small. The people who will catch it are already in the room. They just need to know what they are looking for.
+
+
+
+
+¹ Attribution Notice
+The attribution in this paper follows the April 7, 2026 joint advisory issued by CISA, FBI, NSA, EPA, DOE, and U.S. Cyber Command. References to Iranian-affiliated actors reflect government-documented threat activity and do not represent the author's personal opinion, nor commentary on Iranian people or culture.
+
+
+
+
+References
+CISA, FBI, NSA, EPA, DOE, U.S. Cyber Command. (April 7, 2026). Joint Cybersecurity Advisory AA26-097A: Iranian-Affiliated Cyber Actors Exploit Programmable Logic Controllers Across U.S. Critical Infrastructure. https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-097a
+EPA. (April 7, 2026). EPA, FBI, CISA, NSA Issue Joint Cybersecurity Advisory to Water System Regarding Iranian-Affiliated Cyber Attacks. https://www.epa.gov/newsreleases/epa-fbi-cisa-nsa-issue-joint-cybersecurity-advisory-water-system-regarding-iranian
+CISA & EPA. (December 2024). Internet-Exposed HMIs Pose Cybersecurity Risks to Water and Wastewater Systems. Joint Fact Sheet.
+EPA. (2026). 2026 National Cybersecurity Drill for Water and Wastewater Utilities. https://www.epa.gov/cyberwater/epa-2026-national-cyber-drill
+Brunner, J. (2025). Low-Cost Threats in Municipal OT Environments. OT-Quest Operator Intelligence Series.
+Brunner, J. (2025). Your HMI Is Your Vision — That Is What Makes It Dangerous. OT-Quest Operator Intelligence Series.
+Brunner, J. (2025). What Is a CVE and What the Heck Does It Have to Do With My Cl2. OT-Quest Operator Intelligence Series.
+
+
+
+
+OT-QUEST  |  OPERATOR INTELLIGENCE SERIES
+github.com/Papaperun/OT-Quest
+joshua.berryutility@gmail.com
 
