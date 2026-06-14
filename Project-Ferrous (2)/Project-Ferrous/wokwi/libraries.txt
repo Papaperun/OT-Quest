@@ -1,0 +1,10 @@
+# Wokwi Library List
+# See https://docs.wokwi.com/guides/libraries
+
+# Automatically added based on includes:
+
+
+TinyGPSPlus
+ArduinoJson
+Adafruit ILI9341
+Adafruit GFX Library
