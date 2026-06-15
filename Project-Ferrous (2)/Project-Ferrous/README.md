@@ -107,26 +107,15 @@ If your intent isn't an authorized assessment — this isn't for you.
 This tool is designed for **authorized security assessments only**. Always obtain written authorization before conducting reconnaissance against any network or facility. Shodan queries are passive — they surface data Shodan has already indexed — but operational security and chain of custody practices apply.
 
 ---
-
-## Status
-
-- [x] Three-tier architecture designed
-- [x] Tier 2 Python/Termux implementation
-- [x] Tier 3 ESP32 firmware implementation
-- [x] Wokwi simulation build
-- [ ] Pi 5 expanded platform (Alkahest integration)
-- [ ] Field test on authorized network
-- [ ] OT-Quest threat paper companion
-
----
-
-
 ## Development Notes
 
 Architecture, threat model, and operational design by Joshua Brunner.
 C++ firmware developed with AI assistance (Gemini).
 Python mobile layer by Joshua Brunner with AI assistance.
-
+> ⚠️ Live mode has not been personally field-tested by the author 
+> due to Shodan Membership requirement. Simulation mode is fully 
+> verified. Live mode architecture is sound — test in an authorized 
+> environment before operational use.
 ---
 
 *Part of the [OT-Quest](https://github.com/Papaperun/OT-Quest) research portfolio.*
