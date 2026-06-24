@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SecOT+ // Drill Console</title>
+<style>
+  @font-face {
+    font-family: 'JBM';
+    src: local('JetBrains Mono');
+  }
+  :root{
+    --bg: #0d1210;
+    --panel: #131a17;
+    --card: #1a2420;
+    --line: #2a362f;
+    --green: #3ddc84;
+    --green-dim: #1f5c3f;
+    --amber: #e8b339;
+    --amber-dim: #5c4519;
+    --red: #d9594c;
+    --text: #e8e6e0;
+    --dim: #6e7d74;
+    --dimmer: #44524a;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JBM', 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  body{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 14px 10px 40px;
+  }
+  .wrap{
+    width:100%;
+    max-width: 480px;
+  }
+
+  /* ---- status strip ---- */
+  .statusbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .statusbar .lamp{
+    display:inline-block;
+    width:7px; height:7px;
+    border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    margin-right:7px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.4; }
+  }
+  .statusbar .label{ color: var(--dim); }
+  .statusbar .val{ color: var(--text); font-weight:600; }
+  .statusbar .score{ color: var(--green); }
+
+  /* ---- header tag ---- */
+  .tag{
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+    margin: 4px 2px 8px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .tag .qid{ color: var(--amber); }
+  .tag .cat{ text-transform: uppercase; }
+
+  /* ---- card ---- */
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 16px 16px;
+    margin-bottom: 12px;
+  }
+  .qtext{
+    font-size: 15.5px;
+    line-height: 1.45;
+    margin: 0 0 16px;
+    color: var(--text);
+  }
+
+  .opt{
+    display:flex;
+    align-items:flex-start;
+    gap: 10px;
+    width:100%;
+    text-align:left;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 12px 12px;
+    margin-bottom: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    cursor:pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .opt:active{ transform: scale(0.995); }
+  .opt .letter{
+    flex: 0 0 18px;
+    color: var(--dim);
+    font-weight:700;
+  }
+  .opt:not(.locked):active{ border-color: var(--dimmer); }
+
+  .opt.correct{
+    background: rgba(61,220,132,0.08);
+    border-color: var(--green);
+  }
+  .opt.correct .letter{ color: var(--green); }
+  .opt.wrong{
+    background: rgba(217,89,76,0.08);
+    border-color: var(--red);
+  }
+  .opt.wrong .letter{ color: var(--red); }
+  .opt.reveal-correct{
+    border-color: var(--green-dim);
+  }
+  .opt.reveal-correct .letter{ color: var(--green); }
+
+  .feedback{
+    margin: 4px 2px 0;
+    font-size: 12.5px;
+    min-height: 18px;
+    letter-spacing: 0.02em;
+  }
+  .feedback.ok{ color: var(--green); }
+  .feedback.bad{ color: var(--red); }
+
+  /* ---- controls ---- */
+  .controls{
+    display:flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .btn{
+    flex: 1;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    padding: 13px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn.primary{
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+    font-weight:600;
+  }
+  .btn.ghost{
+    color: var(--dim);
+  }
+  .btn.shuffle{
+    color: var(--amber);
+    border-color: var(--amber-dim);
+  }
+
+  .footer-row{
+    display:flex;
+    justify-content:space-between;
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--dimmer);
+    letter-spacing: 0.03em;
+  }
+  .footer-row button{
+    background:none;
+    border:none;
+    color: var(--dimmer);
+    font-family: inherit;
+    font-size: 11px;
+    text-decoration: underline;
+    cursor:pointer;
+    padding:4px;
+  }
+
+  .credit{
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    text-align:center;
+    font-size: 10px;
+    line-height: 1.6;
+    color: var(--dimmer);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---- done screen ---- */
+  .done{
+    text-align:center;
+    padding: 30px 10px;
+  }
+  .done .big{
+    font-size: 42px;
+    color: var(--green);
+    font-weight:700;
+    margin-bottom: 4px;
+  }
+  .done .sub{
+    color: var(--dim);
+    font-size: 13px;
+    margin-bottom: 22px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .statusbar .lamp{ animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="statusbar">
+    <div><span class="lamp"></span><span class="label">DECK</span> <span class="val" id="deckPos">1/110</span></div>
+    <div><span class="label">SCORE</span> <span class="val score" id="scoreVal">0/0</span></div>
+    <div><span class="label">SESSION</span> <span class="val" id="sessionVal">0/0</span></div>
+  </div>
+
+  <div id="quizArea"></div>
+
+  <div class="footer-row">
+    <span id="missedCount">0 missed this run</span>
+    <button id="resetBtn">reset all progress</button>
+  </div>
+
+  <div class="credit">
+    Questions: Mike Holcomb — mikeholcomb.com<br>
+    Unofficial community study tool, not affiliated with CompTIA. SecOT+ exam not yet live (beta summer 2026).<br>
+    Drill console built by Joshua Brunner / OT-Quest
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+{c:"Systems & Safety",q:"How does the primary goal of OT cybersecurity differ from the primary goal of IT cybersecurity?",o:["OT prioritizes data confidentiality; IT prioritizes physical safety","OT prioritizes physical safety; IT prioritizes data confidentiality","OT prioritizes plant operations; IT prioritizes data integrity","The primary goal of OT cybersecurity and IT cybersecurity are the same."],a:1},
+{c:"Systems & Safety",q:"What type of PPE would be considered mandatory to ensure personnel safety when working in high-voltage electrical panels?",o:["Respirators and chemical-resistant aprons","Steel-toed boots and high-visibility vests","Hard hat and safety glasses","Arc flash suits, insulated gloves, and face shield"],a:3},
+{c:"Systems & Safety",q:"What does SIL stand for in industrial safety?",o:["System Integration Locator","Safety Integrity Level","Secure Industrial Logic","Secure Integrity Lockout"],a:1},
+{c:"Systems & Safety",q:"During an active cybersecurity incident in a manufacturing plant, which of the following takes precedence?",o:["Securing forensic data","Plant uptime","Human safety","Internal and external communication"],a:2},
+{c:"Systems & Safety",q:"What is a Programmable Logic Controller (PLC)?",o:["System which monitors and controls equipment in the real world","A server used to store and archive historical plant data","A graphical interface for human operators to monitor the plant environment","A network switch designed for industrial protocols like Modbus and S7"],a:0},
+{c:"Systems & Safety",q:"According to the Purdue Model, which of the following types of systems lives at Level 0?",o:["Physical process devices such as sensors, actuators, and motors","Basic control devices such as PLCs and RTUs","Plant supervisory systems such as HMIs","Business logistics servers in the IT enterprise"],a:0},
+{c:"Systems & Safety",q:"Which of the following would be used to update the firmware and/or logic on a PLC?",o:["OWS","EWS","SIS","DCS"],a:1},
+{c:"Systems & Safety",q:"What is the primary function of a data historian?",o:["Update the firmware on PLCs","Make backups of all assets on the OT/ICS network","Store time-series data for reporting and analysis","Accept orders from clients to forward to OT for production"],a:2},
+{c:"Systems & Safety",q:"Why is active scanning most often prohibited from being used on OT/ICS networks?",o:["Considered too expensive","Requires Internet access which is prohibited in OT/ICS","Can cause availability and/or performance issues","Active scanning is actually allowed in all OT/ICS networks"],a:2},
+{c:"Systems & Safety",q:"Which of the following is the most commonly used programming language for PLCs?",o:["Ladder logic","Structured text","Function Block Diagram","Instruction List"],a:0},
+{c:"Systems & Safety",q:"What is the correct order for the PLC \"Scan Cycle\"?",o:["Housekeeping -> Input Scan -> Output scan -> Program execution","Program execution -> Output scan -> Housekeeping -> Input scan","Output scan -> Input scan -> Program execution -> Housekeeping","Input scan -> Program execution -> Output scan -> Housekeeping"],a:3},
+{c:"Systems & Safety",q:"Which of the following represents the digital I/O?",o:["0, 1","0 – 65,535","80, 443, 1433","102, 502, 44818"],a:0},
+{c:"Systems & Safety",q:"What is the Set Point (SP)?",o:["The maximum physical limit of a machine","The desired or target value of a process variable","The time it takes for a PLC to complete one scan cycle","The measured state of a process being controlled"],a:1},
+{c:"Systems & Safety",q:"Which critical infrastructure sector relies heavily on Building Management Systems (BMS) more than the others?",o:["Oil and Gas","Power generation","Commercial facilities","Water/wastewater"],a:2},
+{c:"Systems & Safety",q:"What does the acronym ICS stand for?",o:["Industrial Control System","Integrated Control Security","Internal Communications Security","Intelligent Control System"],a:0},
+{c:"Systems & Safety",q:"Which is a unique challenge in water/wastewater environments?",o:["Requires high-speed fiber optic communication lines","Requires 5G connectivity for all installed sensors to accommodate for local interference generated by alternating VFDs","It cannot use Ethernet due to the moisture in the physical environment","Pumping stations are often geographically dispersed and require low-bandwidth radio communication"],a:3},
+{c:"Systems & Safety",q:"Which of the following would be considered a \"ruggedized\" piece of equipment?",o:["Built to withstand environmental extremes","Designed with military-grade communication protocols for security","Hardened operating systems with Zero Trust built-in to the OS","Physically secured behind a minimum of three (3) physical security controls to prevent theft"],a:0},
+{c:"Systems & Safety",q:"According to the Purdue Model, which level would an anti-malware update server hosted between the IT and OT networks reside?",o:["4","3.5","3","2.5"],a:1},
+
+{c:"Risk Management",q:"A manufacturing plant loses production capabilities due to the IT network being compromised with ransomware. Which metric would be used to measure the maximum acceptable amount of downtime measured in time?",o:["Recovery Time Objective (RTO)","Mean Time to Repair (MTTR)","Recovery Point Objective (RPO)","Maximum Tolerable Downtime (MTD)"],a:2},
+{c:"Risk Management",q:"Which compliance requirements are enforced in North America for environments responsible for power generation and transmission?",o:["NERC CIP","ISO 27001/27002","NIST SP 800-82","ISA/IEC 62443"],a:0},
+{c:"Risk Management",q:"Which of the following responsibilities would be filled by an owner's executive leadership?",o:["Configuring firewall rules for the IT/OT DMZ","Escorting third-party vendors through the shop floor","Managing the OT SOC when looking for suspicious network activity","Establishing the organization's level of risk tolerance and providing support"],a:3},
+{c:"Risk Management",q:"Which of the following US government institutions issues security directives for both pipeline and rail operators?",o:["FDA","TSA","EPA","SEC"],a:1},
+{c:"Risk Management",q:"What does the 'A' in a RACI matrix stand for?",o:["Administrator","Assessor","Accountable","Accessible"],a:2},
+{c:"Risk Management",q:"What is the primary function of a Risk Register in OT environments?",o:["Track all assets on the network, including vendor make, model and firmware version","List all identified risks in the environment for tracking risk owners and remediation status","To monitor for security issues identified through network security monitoring","Create a supportive learning environment for team members learning about different aspects of OT/ICS cybersecurity"],a:1},
+{c:"Risk Management",q:"What is the formula for calculating risk?",o:["Risk = Threat x Vulnerability x Impact","Risk = Asset Value / Threat","Risk = (Threat x 2) + (Impact x 2)","Risk = Likelihood + Time x Impact"],a:0},
+{c:"Risk Management",q:"Which of the following acts as an internationally accepted standard for securing OT/ICS environments from cybersecurity risks?",o:["PCI","ISO 27001/27002","NIST SP 800-153","ISA/IEC 62443"],a:3},
+{c:"Risk Management",q:"In the context of risk variables, what is a \"Vulnerability\"?",o:["A malicious actor trying to cause some level of harm","The financial cost of a breached system when there is an impact","A weakness in an information system, procedure, or control that could be exploited by a threat","The probability that an event will occur within a specific time frame"],a:2},
+{c:"Risk Management",q:"Why is communication an important part of the Change Management process?",o:["Stakeholders will understand when operations will be impacted and how","It is legally mandated by the SEC","It allows the organization to coordinate activities with its customers","Communication is key to ensuring that any associated change does not fail"],a:0},
+{c:"Risk Management",q:"What is Factory Acceptance Testing (FAT)?",o:["Phishing awareness campaign emails sent to factory team members","Physical pressure testing on a specific piece of equipment for stress testing","Testing conducted at a manufacturer's facility to ensure it meets specifications","Point in time when the customer reviews initial contract and equipment specifications prior to purchase"],a:2},
+{c:"Risk Management",q:"What is the primary goal of Change Management in OT/ICS environments?",o:["Ensure that blame falls on IT when a change fails","To speed up implementations by bypassing required testing","Ensure all changes are evaluated, tested, approved, and documented","To prevent changes from ever occurring in the OT environment"],a:2},
+{c:"Risk Management",q:"What is the role of the Change Advisory Board (CAB)?",o:["To review all reviews of PLC logic prior to being deployed to Production","To negotiate pricing and contractual requirements with outside parties","To perform a review of all proposed network infrastructure before implementation","To approve or reject proposed changes which could impact the OT environment"],a:3},
+{c:"Risk Management",q:"A large LNG port facility has received equipment on-site prior to the commissioning of the facility. The on-site team needs to review the equipment and ensure it meets their requirements. Which of the following would the on-site team perform at this point?",o:["SAT","FAT","CAT","PAT"],a:0},
+{c:"Risk Management",q:"An auditor is performing a physical walkthrough of a manufacturing plant and observes that most PLCs on the shop floor have their key switch placed in the 'Remote Run' position. What is the resulting documentation referred to as?",o:["A risk acceptance form","A zero-day risk register","An audit finding","A Service Level Agreement (SLA)"],a:2},
+{c:"Risk Management",q:"Which framework was established by the United States government and defines six phases of cybersecurity – Identify, Protect, Detect, Respond, Recover, and governance?",o:["NIST 800-82","ISA/IEC 62443","ISO 27001/27002","NIST CSF"],a:3},
+{c:"Risk Management",q:"A risk assessment identifies that there is currently no network security monitoring being performed in a water treatment plant. The owner determines the cost of deploying monitoring is too great compared to the probability of an attack. Which risk strategy is this?",o:["Risk acceptance","Risk avoidance","Risk transference","Risk mitigation"],a:0},
+{c:"Risk Management",q:"A manufacturing plant recently had operations come to a standstill from a ransomware attack that spread from IT to OT. To prevent future attacks, a firewall was deployed between IT and OT. This is what type of risk strategy?",o:["Risk acceptance","Risk avoidance","Risk mitigation","Risk transference"],a:2},
+
+{c:"Threat Intelligence",q:"Which threat intelligence framework focuses on the relationships between the Adversary, Capability, Infrastructure, and Victim?",o:["The Cyber Kill Chain","MITRE ATT&CK for ICS","ICS4ICS","The Diamond Model"],a:3},
+{c:"Threat Intelligence",q:"An industrial company was targeted by a hacktivist who sent malware via email to employees. According to the Lockheed Martin Cyber Kill Chain, which phase occurred?",o:["Weaponization","Delivery","Reconnaissance","Actions on Objectives"],a:1},
+{c:"Threat Intelligence",q:"In 2010, the first case of ICS-specific malware used to impact and destroy physical equipment was reported. What was its name?",o:["TriSIS/TRITON","BlackEnergy2","Stuxnet","Industroyer/CrashOverride"],a:2},
+{c:"Threat Intelligence",q:"In the context of OT threat intelligence, TTP stands for what?",o:["Tactics, Techniques, and Procedures","Targeted Threat Protocols","Time to Patch","Technical Threat (Response and) Protection"],a:0},
+{c:"Threat Intelligence",q:"What is the primary function of an ISAC?",o:["To prosecute cyber criminals impacting OT/ICS environments","Review PLC logic code for the presence of malicious code prior to implementation","Store information about each asset on the OT/ICS network such as vendor make, model, and firmware version","Facilitate sharing of threat intel between member organizations"],a:3},
+{c:"Threat Intelligence",q:"A manufacturing environment had its remote access solution compromised by an attacker targeting the company for espionage. The attacker was more than likely what type?",o:["Hacktivist","Script kiddie","State actor","Ransomware operator"],a:2},
+{c:"Threat Intelligence",q:"Which classification system for vulnerabilities provides a standardized numerical scoring system for rating risk?",o:["MITRE ATT&CK for ICS","CVSS","STIX","TAXII"],a:1},
+{c:"Threat Intelligence",q:"In 2017, a state adversary compromised the Safety Instrumented System (SIS) of a petrochemical facility in the Middle East — the TriSIS/TRITON incident. The adversary behind it was known as what?",o:["Sandworm","Fuzzy Bear","Scattered Spider","Shattered Spider"],a:0},
+{c:"Threat Intelligence",q:"The Shodan platform created by Jonathan Mattherly could be used to discover which of the following?",o:["Unauthorized 5G connections dropped in the plant network by a contractor","Assets that are exposed directly to the Internet","Personal smartphones connected to engineering workstations without permission","USB drives compromised with malware"],a:1},
+{c:"Threat Intelligence",q:"Jennifer is an OT SOC analyst that primarily focuses on Indicators of Compromise (IOCs) such as known malicious IP addresses, file hashes, and domain names. These IOCs are considered which type of threat intelligence?",o:["Strategic intelligence","Tactical intelligence","Operational intelligence","Technical intelligence"],a:3},
+{c:"Threat Intelligence",q:"The ICS-specific malware known as Industroyer and CrashOverride was responsible for what OT environment impact?",o:["Power blackout","Water complete loss","Water low pressure","Sewage spills in public locations"],a:0},
+{c:"Threat Intelligence",q:"Which of the following documents the TTPs of known incidents with a primary focus on enumerating what attackers do once they've gained initial access to an OT network?",o:["MITRE ATT&CK for ICS","CVSS","STIX","TAXII"],a:0},
+{c:"Threat Intelligence",q:"Which piece of malware was used to turn off heating in 600 apartment buildings in the middle of winter in Ukraine in January 2024?",o:["Stuxnet","TriSIS","CrashOverride","FrostyGoop"],a:3},
+{c:"Threat Intelligence",q:"The Cyber Av3ngers group, loosely aligned with Iranian state interests, targeted Unitronics devices exposed to the Internet because the devices were made in Israel. The Cyber Av3ngers is an example of what type of attacker?",o:["State adversary","Hacktivist","Script kiddie","Ransomware operator"],a:1},
+{c:"Threat Intelligence",q:"Which cybersecurity incident impacted the longest gasoline pipeline in the United States, taking it down for 10 days, and resulted in the TSA issuing Security Directives for pipeline and rail operators?",o:["Stuxnet","Triconex","Colonial","Oldsmar"],a:2},
+{c:"Threat Intelligence",q:"Which type of backup captures the entire state of the operating system, applications, and files at a specific point in time?",o:["System image","Incremental file backup","Differential file backup","Cloud-only synchronization"],a:0},
+{c:"Threat Intelligence",q:"What is the #1 attack vector that cyber attackers use to gain access to the OT network?",o:["Internet-exposed assets","Remote access architecture","Directly from the IT network","Vulnerable web server in the DMZ"],a:2},
+{c:"Threat Intelligence",q:"A large manufacturing environment just began a multi-year project to deploy a solution providing encryption and mutual authentication between assets on the OT network. Which of the following are they deploying?",o:["Physical keys used to lock cabinets in the plant","Privileged Access Management (PAM)","Network Security Monitoring (NSM)","Public Key Infrastructure (PKI)"],a:3},
+
+{c:"Architecture & Design",q:"The director for OT cybersecurity at one of the largest ports in the country wants to deploy a system between IT and OT that uses physics to ensure data can only be sent in one direction. Which of the following would be deployed?",o:["Data diode","Unidirectional gateway","Firewall","Layer 3 switch"],a:0},
+{c:"Architecture & Design",q:"What is Multi-Factor Authentication (MFA)?",o:["Requiring a user to login with two (or more) unique passwords","Allowing a user to login to multiple engineering workstations at the same time","Using network security monitoring to provide multiple scans of traffic when looking for suspicious traffic","Forcing a user to use two or more separate forms of evidence when logging in"],a:3},
+{c:"Architecture & Design",q:"Which of the following best describes a DMZ?",o:["A physical area within the plant which requires team members to wear PPE","A completely air-gapped OT network which does not connect to any other type of network","A buffer segment between the IT and OT networks which houses shared services","The zone where all Level 0 assets reside to ensure security of all sensors, actuators and other equipment"],a:2},
+{c:"Architecture & Design",q:"The IT/OT DMZ is represented by which layer of the expanded Purdue Model?",o:["4","3.5","3","2.5"],a:1},
+{c:"Architecture & Design",q:"Which of the following best describes the concept of \"Defense in Depth\"?",o:["Relying on a single security control such as a firewall between IT and OT","Configuring security monitoring on each PLC in the plant","Ensuring that all devices on the OT/ICS network are ruggedized","Implementing multiple cybersecurity controls, assuming that at least one control will fail"],a:3},
+{c:"Architecture & Design",q:"Which of the following physical security controls can be used to prevent tailgating?",o:["A bollard","A mantrap","A USB blocker","A HAZMAT suit"],a:1},
+{c:"Architecture & Design",q:"What is one argument against deploying MFA to protect OT assets?",o:["MFA could prevent an engineer from reviewing PLC logic prior to deployment","MFA tokens can generate electrical interference","Operators share mobile phones in OT which makes unique MFA tokens impossible","MFA could delay an operator from responding in an emergency situation"],a:3},
+{c:"Architecture & Design",q:"Which of the following enforces the idea of providing users and systems with only the specific access and permissions they need to do their job – no more, no less?",o:["Defense in Depth","Principle of Least Privilege","The Pareto Principle","Resilience Fundamentals"],a:1},
+{c:"Architecture & Design",q:"Which of the following ensures that any activity on the OT network can be tracked back to a specific individual?",o:["Least privilege","Interoperability","Accountability","Resilience"],a:2},
+{c:"Architecture & Design",q:"Which architecture is described in ISA/IEC 62443 to segment the OT network into smaller segments shared by hosts with the same security requirements?",o:["Zones","Conduits","Subnets","VLANs"],a:0},
+{c:"Architecture & Design",q:"Which of the following architecture designs assumes that the OT network is compromised and requires strict verification of each attempted network connection?",o:["Zero Trust","Hub-and-Spoke","IT/OT DMZ","Least Privilege"],a:0},
+{c:"Architecture & Design",q:"Which of the following lessons was highlighted by the TriSIS/TRITON incident?",o:["Remote access applications like TeamViewer provide a common attack vector for threat actors","OT assets can become exposed directly to the Internet where they can be found and targeted by attackers","Safety Instrumented Systems should be air-gapped and not connected directly to the OT network","Employees should not be allowed to access email from within the OT network"],a:2},
+{c:"Architecture & Design",q:"The main goal of physical barriers such as fences and bollards is to do what?",o:["To delay unauthorized physical access","To prevent wireless signals from entering a facility","To prevent wireless signals from leaving a facility","To ensure there are plenty of options for electrical grounding"],a:0},
+{c:"Architecture & Design",q:"CCTV surveillance cameras are considered what type of security control?",o:["Detective","Preventative","Technical","Management"],a:0},
+{c:"Architecture & Design",q:"Why are routine inspections of OT cabinets and server racks required in OT environments?",o:["Meet requirements for regular inspection of dust and particulate accumulation","To ensure that network speeds continue to be met on a continual basis","Unauthorized devices such as 5G modems can be deployed to the network","To build an asset register from scratch"],a:2},
+{c:"Architecture & Design",q:"In physical security, CPTED stands for which of the following?",o:["Cyber Physical Threat Elimination Directives","Crime Prevention Through Environmental Design","Critical Process Technical Evaluation Data","Control Panel Tamper Evident Device"],a:1},
+{c:"Architecture & Design",q:"What is the purpose of the physical \"air gap\"?",o:["To ensure adequate airflow around OT assets such as PLCs and HMIs","To prevent any outside physical or logical network connections into the OT network","To separate the IT team from the OT team","To continually measure atmospheric pressure in sensitive areas of the plant environment"],a:1},
+{c:"Architecture & Design",q:"As part of its hardening plan, the OT cybersecurity team in a water treatment facility implemented a control that checks the cryptographic signature of the bootloader, OS kernel, and drivers on its workstations. Which control did the team deploy?",o:["Zero Trust","Secure Boot","Air Gapping","Allowlisting"],a:1},
+{c:"Architecture & Design",q:"Which of the following can be used to help ensure malicious firmware updates cannot be made by an unauthorized attacker with access to the OT network?",o:["Setting a PLC keyswitch to \"Read Only\"","Setting a PLC keyswitch to \"Remote Program\"","Setting a PLC keyswitch to \"Secure Mode\"","Setting a PLC keyswitch to \"Run Mode\""],a:3},
+{c:"Architecture & Design",q:"What is the primary advantage of allowlisting over traditional anti-malware solutions in an OT environment?",o:["Allowlisting can be automatically updated without human intervention","Allowlisting can scan for abnormalities much faster","Allowlisting is much more effective at preventing malicious software from running on a system","Allowlisting is much more effective at allowing team members to surf the Internet securely from the OT network"],a:3},
+
+{c:"Security Operations",q:"What is the primary benefit of maintaining a complete and accurate OT asset register?",o:["Provides OT and IT cybersecurity team members with information that's important when investigating alerts","Assists the Operations team members with automating upgrades to legacy systems to speed deployment and limit plant downtime","Prevents the theft of OT assets such as PLCs, HMIs, and engineering workstations","Lowers the overall consumption of energy consumed by a plant over time"],a:0},
+{c:"Security Operations",q:"Why is active scanning in OT/ICS environments often prohibited?",o:["It is considered illegal by most local and state government entities","It can cause interruptions in operations by impacting legacy assets, creating adverse network conditions, or other issues","It is only considered effective in IT networks","It requires a physical laptop to be connected directly to the OT network at Level 0 according to the expanded Purdue Model"],a:1},
+{c:"Security Operations",q:"Which of the following methods for building an asset register presents the most physical risk to team members?",o:["Walking the plant","Active scanning","Passive network sniffing","Review project files and other documentation"],a:0},
+{c:"Security Operations",q:"Which of the following details in an asset register is the MOST important in determining the presence of security vulnerabilities on an OT asset?",o:["Firmware version","Last update date","Next planned update date","Asset owner"],a:0},
+{c:"Security Operations",q:"Which of the following would be considered a transitory cyber asset?",o:["PLC","HMI","Contractor laptop","Engineering workstation"],a:2},
+{c:"Security Operations",q:"Chewy is reviewing a system that documents all software components within a software application used in the OT network, and using it to determine if the software has known vulnerabilities. Which of the following is he reviewing?",o:["ISAC","SIS","SBOM","ICS4ICS"],a:2},
+{c:"Security Operations",q:"Which of the following protocols should be monitored to determine when new assets are added to the OT network?",o:["MAC","ARP","HTTP","ICMP"],a:1},
+{c:"Security Operations",q:"Lee Hsu identifies that a PLC on the shop floor had its programming logic recently changed, but the change was not approved by the Change Control Board. Which of the following should occur next?",o:["Law enforcement should be notified","Ensure the asset register is updated","Follow incident response procedures to investigate the cause","Disconnect the PLC from the network and notify the plant manager"],a:2},
+{c:"Security Operations",q:"Which of the following is a challenge of using a traditional IT SIEM platform in an OT/ICS environment?",o:["Lack of correlation rules for OT-specific activity and protocols such as DNP3 and Modbus","It cannot store collected data past 24 hours","It requires operators to understand how to convert IT to OT","It can falsely identify OT network protocols as malicious and actively block the traffic, potentially interfering with plant operations and safety"],a:0},
+{c:"Security Operations",q:"Why is SOAR often not leveraged in OT environments?",o:["It could take an action that interferes with safety and operations","It is deemed illegal to use in most environments by the SEC","Its technology stack does not allow it to be used in OT/ICS environments","ISA/IEC 62443 specifically states that SOAR implementations are prohibited from use in OT/ICS environments"],a:0},
+{c:"Security Operations",q:"Lorena is performing a security investigation by reviewing time-series data of physical processes in the plant. Which of the following is she reviewing?",o:["PLC","CCTV","Data historian","Engineering workstation"],a:2},
+{c:"Security Operations",q:"Carlos is reviewing logs from the firewall deployed between IT and OT and notes blocked packets on TCP ports 80, 443, 102, 502, 44818 and more. What type of attack might this indicate?",o:["Password spraying","Port scanning","Shodan enumeration","Social engineering"],a:1},
+{c:"Security Operations",q:"Which of the following network ports is associated with Modbus?",o:["TCP 102","TCP 443","TCP 502","TCP 8888"],a:2},
+{c:"Security Operations",q:"Which of the following tools would be used by a security analyst to read a PCAP?",o:["Nmap","Wireshark","Metasploit","Nikto"],a:1},
+{c:"Security Operations",q:"Jennifer is monitoring security alerts for the OT network when she receives an alert that an HMI attempted an outbound SSH connection to a public IP address. What should she do next?",o:["Investigate the reason for the traffic","Immediately disconnect the HMI from the network","Notify an Operations team member to replace the HMI hardware","Mark the alert as a false positive since HMIs cannot be compromised"],a:0},
+{c:"Security Operations",q:"Which of the following should not be deployed in an OT/ICS environment as it could actively block network traffic which is required to ensure safety and operational availability?",o:["CUPS","CAPS","IDS","IPS"],a:3},
+
+{c:"Incident Management",q:"Which of the following is the first phase of the PICERL incident response model?",o:["Preparation","Planning","Physical","Process"],a:0},
+{c:"Incident Management",q:"The ICS4ICS framework was adapted from which of the following?",o:["The NIST Cybersecurity Framework (CSF)","MITRE ATT&CK for ICS","FEMA's Incident Command System (ICS)","ISA/IEC 62443"],a:2},
+{c:"Incident Management",q:"According to the PICERL model, which of the following phases involves removing an attacker's access to the environment?",o:["Identification","Containment","Eradication","Lessons Learned"],a:2},
+{c:"Incident Management",q:"Why does the ICS4ICS framework work well in OT/ICS environments?",o:["It mandates exactly which network security monitoring tools are to be used","It uses standardized language shared in common between OT cybersecurity responders and physical plant responders","It strictly prohibits involvement of IT team members","It relies on highly available tools that are accessible from the cloud"],a:1},
+{c:"Incident Management",q:"Herbert is conducting an exercise with team members who just responded to an OT cybersecurity incident in their refinery, identifying what went well and opportunities for improvement. What activity is this?",o:["Tabletop exercise","Lessons learned","Security awareness training","OT threat landscape briefing"],a:1},
+{c:"Incident Management",q:"What marks the official end of the Recovery phase?",o:["The attacker is caught","The first impacted system is restored","The malware used by the attacker has been identified","The plant manager acknowledges that normal, secure operations have been fully restored and validated"],a:3},
+{c:"Incident Management",q:"During OT recovery, why could restoring a PLC's logic from an older backup be potentially dangerous?",o:["Older backups could put increased stress on the PLC's hardware resulting in slow performance","SEC requirements do not allow backups older than one week to be used in most OT/ICS environments globally","The older backup could take too long to restore, introducing safety and operational availability issues","Unsafe actions might be taken by the PLC if physical process parameters, like a storage tank's level, have changed since the older backup was taken"],a:3},
+{c:"Incident Management",q:"What is mandatory reporting?",o:["The requirement to report any relevant cybersecurity incident to the appropriate authorities","Guidance provided by the plant manager to the IT cybersecurity team members when an incident occurs","Requires all OT team members to provide a report on the incident, their understanding of what occurred and any identified opportunities for improvement","OT cybersecurity incidents are required to be reported to local news media so that the general public can be made aware of the situation"],a:0},
+{c:"Incident Management",q:"Which of the following is considered the most secure form of Eradication and ensures an attacker no longer has control over an asset?",o:["Running a full scan using the local anti-malware solution rather than a quick scan","Manually deleting any artifacts left by the attackers on the asset","Changing all passwords associated with the asset, including any and all hardcoded passwords","Wiping the system and restoring from a known-good, trusted image"],a:3},
+{c:"Incident Management",q:"Pierre is an analyst on the OT SOC and notices a sudden and immediate surge in SMB activity. What type of attack could this indicate?",o:["An unauthorized vulnerability scan using Nessus","Normal polling of a PLC by an HMI","A potential ransomware infection moving through the environment","Completion of a successful backup of a PLC"],a:2},
+{c:"Incident Management",q:"Carlos is monitoring the OT SOC console when he receives an alert from a Windows-based HMI reporting that the file hash associated with an important system DLL changed. What could this indicate?",o:["The file had been altered","The file was successfully backed up","The file was not successfully backed up","The HMI has lost connectivity to the PLC that it monitors and controls"],a:0},
+{c:"Incident Management",q:"Which of the following types of traffic would be considered abnormal for an OT network?",o:["An HMI connecting to a PLC","An engineering workstation performing DNS resolution","SQL Server traffic via TCP 1433 between data historians","An ARP broadcast from an HMI that was just powered on"],a:1},
+{c:"Incident Management",q:"Setsuko is performing a review of an OT firewall. She exports the firewall events to a file and uploads the results to ChatGPT, prompting it to complete the review for her. What's wrong with this situation?",o:["Nothing.","OT firewalls don't generate events that can be reviewed.","Sensitive data should not be uploaded to cloud platforms such as ChatGPT.","GenAI can't perform such reviews."],a:2},
+{c:"Incident Management",q:"What is the primary focus of performing a Root Cause Analysis (RCA)?",o:["Identify the attacker responsible for the breach","Calculating the financial cost of any associated downtime","Find the exact cause of how the incident occurred and address the issue","Determining the geographic location of the attacker"],a:2},
+{c:"Incident Management",q:"In digital forensics, what is the \"Chain of Custody?\"",o:["A physical security lock for cabinets in an OT data center","Individual locks which can be inserted into each empty Ethernet port","A network topology showing all connections allowed through a firewall which accompanies the asset register","A record of custody, transfer, and analysis of digital evidence"],a:3},
+{c:"Incident Management",q:"How often should an organization perform tabletop exercises?",o:["Only when a new plant manager or OT CISO is hired","After a security incident occurs within the plant","Annually or when there is a significant change to the environment or threat landscape","Once every five years"],a:2},
+{c:"Incident Management",q:"Which of the following cybersecurity exercises are usually not conducted in OT environments due to safety and availability concerns?",o:["Tabletop exercises","Penetration testing","Vulnerability assessments","Network security monitoring"],a:1},
+{c:"Incident Management",q:"Chris and Paul on the OT cybersecurity team for a refinery have been negotiating a contract with an outside provider to bring them in during a cybersecurity incident, with defined SLAs for assistance once notified. What are they working to establish?",o:["Incident response retainer","Asset register","Incident Response Plan (IRP)","Vulnerability management program"],a:0},
+{c:"Incident Management",q:"What is the main difference between an Incident Response Plan (IRP) and an incident response playbook?",o:["An IRP is for OT; A playbook is for IT","A playbook is for OT; An IRP is for IT","An IRP is high-level; a playbook has specific steps","An IRP is optional; a playbook is legally required"],a:2},
+{c:"Incident Management",q:"Which external party should be notified immediately in the event of an environmental chemical spill?",o:["The IT Helpdesk","Local emergency services","The OT SOC team members","The corporate communications team"],a:1},
+];
+
+
+const STORE_KEY = 'secot_drill_v1';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { correct:0, total:0, order: null };
+}
+function saveState(s){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }catch(e){}
+}
+
+let state = loadState();
+
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// order = array of indices into QUESTIONS, defines deck sequence
+if(!state.order || state.order.length !== QUESTIONS.length){
+  state.order = QUESTIONS.map((_,i)=>i);
+  saveState(state);
+}
+
+let deckIndex = 0;       // position within state.order for current session
+let sessionAnswered = 0;
+let sessionCorrect = 0;
+let answeredThis = false;
+let currentOptOrder = []; // shuffled option indices for current question
+
+const quizArea = document.getElementById('quizArea');
+const deckPosEl = document.getElementById('deckPos');
+const scoreValEl = document.getElementById('scoreVal');
+const sessionValEl = document.getElementById('sessionVal');
+const missedCountEl = document.getElementById('missedCount');
+let missedThisRun = 0;
+
+function currentQuestion(){
+  const qIdx = state.order[deckIndex];
+  return QUESTIONS[qIdx];
+}
+
+function renderStatus(){
+  deckPosEl.textContent = (deckIndex+1) + '/' + QUESTIONS.length;
+  scoreValEl.textContent = state.correct + '/' + state.total;
+  sessionValEl.textContent = sessionCorrect + '/' + sessionAnswered;
+  missedCountEl.textContent = missedThisRun + ' missed this run';
+}
+
+function letterFor(i){ return ['A','B','C','D'][i]; }
+
+function renderQuestion(){
+  answeredThis = false;
+  const q = currentQuestion();
+  const qNum = String(state.order[deckIndex]+1).padStart(3,'0');
+
+  // shuffle option order for this render
+  currentOptOrder = shuffleArray(q.o.map((_,i)=>i));
+
+  let html = '';
+  html += '<div class="tag"><span class="qid">Q-' + qNum + '</span><span class="cat">' + q.c + '</span></div>';
+  html += '<div class="card">';
+  html += '<p class="qtext">' + escapeHtml(q.q) + '</p>';
+  html += '<div id="optsWrap">';
+  currentOptOrder.forEach((origIdx, pos) => {
+    html += '<button class="opt" data-orig="' + origIdx + '" data-pos="' + pos + '">';
+    html += '<span class="letter">' + letterFor(pos) + '</span><span class="optText">' + escapeHtml(q.o[origIdx]) + '</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+  html += '<div class="feedback" id="feedback"></div>';
+  html += '</div>';
+  html += '<div class="controls">';
+  html += '<button class="btn ghost" id="shuffleBtn">⟲ shuffle deck</button>';
+  html += '<button class="btn primary" id="nextBtn">next →</button>';
+  html += '</div>';
+
+  quizArea.innerHTML = html;
+  renderStatus();
+
+  document.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', onOptionClick);
+  });
+  document.getElementById('nextBtn').addEventListener('click', goNext);
+  document.getElementById('shuffleBtn').addEventListener('click', shuffleDeck);
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function onOptionClick(e){
+  if(answeredThis) return;
+  answeredThis = true;
+  const q = currentQuestion();
+  const clicked = e.currentTarget;
+  const chosenOrig = parseInt(clicked.dataset.orig,10);
+  const isCorrect = chosenOrig === q.a;
+
+  document.querySelectorAll('.opt').forEach(btn=>{
+    const orig = parseInt(btn.dataset.orig,10);
+    if(orig === q.a){
+      btn.classList.add(isCorrect ? 'correct' : 'reveal-correct');
+    }
+    if(orig === chosenOrig && !isCorrect){
+      btn.classList.add('wrong');
+    }
+  });
+
+  state.total++;
+  sessionAnswered++;
+  if(isCorrect){
+    state.correct++;
+    sessionCorrect++;
+  } else {
+    missedThisRun++;
+  }
+  saveState(state);
+
+  const fb = document.getElementById('feedback');
+  fb.textContent = isCorrect ? '✓ correct' : '✗ incorrect — correct answer highlighted';
+  fb.className = 'feedback ' + (isCorrect ? 'ok' : 'bad');
+
+  renderStatus();
+}
+
+function goNext(){
+  if(deckIndex < state.order.length - 1){
+    deckIndex++;
+    renderQuestion();
+  } else {
+    renderDone();
+  }
+}
+
+function shuffleDeck(){
+  // reshuffle the remaining order of the deck (keeps current question, shuffles upcoming ones)
+  const remaining = state.order.slice(deckIndex+1);
+  const past = state.order.slice(0, deckIndex+1);
+  state.order = past.concat(shuffleArray(remaining));
+  saveState(state);
+  const fb = document.getElementById('feedback');
+  if(fb){
+    fb.textContent = '⟲ remaining deck reshuffled';
+    fb.className = 'feedback';
+    fb.style.color = 'var(--amber)';
+  }
+}
+
+function renderDone(){
+  const pct = sessionAnswered ? Math.round((sessionCorrect/sessionAnswered)*100) : 0;
+  quizArea.innerHTML =
+    '<div class="card done">' +
+      '<div class="big">' + pct + '%</div>' +
+      '<div class="sub">' + sessionCorrect + ' / ' + sessionAnswered + ' correct this run</div>' +
+      '<div class="controls">' +
+        '<button class="btn primary" id="restartBtn">run deck again →</button>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('restartBtn').addEventListener('click', restartRun);
+  renderStatus();
+}
+
+function restartRun(){
+  deckIndex = 0;
+  sessionAnswered = 0;
+  sessionCorrect = 0;
+  missedThisRun = 0;
+  state.order = shuffleArray(state.order);
+  saveState(state);
+  renderQuestion();
+}
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('resetBtn');
+  if(btn.dataset.armed === '1'){
+    localStorage.removeItem(STORE_KEY);
+    state = { correct:0, total:0, order: QUESTIONS.map((_,i)=>i) };
+    saveState(state);
+    deckIndex = 0;
+    sessionAnswered = 0;
+    sessionCorrect = 0;
+    missedThisRun = 0;
+    btn.dataset.armed = '0';
+    btn.textContent = 'reset all progress';
+    renderQuestion();
+  } else {
+    btn.dataset.armed = '1';
+    btn.textContent = 'tap again to confirm reset';
+    setTimeout(()=>{
+      if(btn.dataset.armed === '1'){
+        btn.dataset.armed = '0';
+        btn.textContent = 'reset all progress';
+      }
+    }, 4000);
+  }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>
