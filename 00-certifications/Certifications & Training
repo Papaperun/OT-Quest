@@ -1,0 +1,95 @@
+# Certifications & Training
+
+This directory contains verifiable records for my water utility operations licensure and continuing education, alongside my academic and practical training in Information Technology (IT) and Operational Technology (OT/ICS) cybersecurity.
+
+### File Organization & Naming Convention
+To maintain a chronological audit trail, files are stored flat in this directory using the following naming standard:
+`YYYY-MM-DD_short-course-name.pdf` (e.g., `2026-06-17_210W-01-ics-deployments.pdf`).
+
+---
+
+## Cybersecurity & OT/ICS Credentials
+
+The following certifications and technical courses establish a core foundation in IT security baselines, industrial control systems architecture, and sector-specific critical infrastructure protection.
+
+### Professional Certifications
+
+| Credential | Issuer | Earned | Valid Through | Source |
+|---|---|---|---|---|
+| CompTIA Security+ (SY0-701) | CompTIA | 04/08/2026 | 04/08/2029 | [PDF](./2026-04-08_comptia-security-plus.pdf) |
+| Certified in Cybersecurity (CC) | ISC2 | 03/01/2026 | 02/28/2029 | [PDF](./2026-03-01_isc2-cc.pdf) |
+| Texas Class A Water Treatment Operator | TCEQ | — | Active | — |
+
+### CISA / INL Industrial Control Systems Training (210W Series)
+
+This curriculum focuses on industrial control systems fundamentals, threat landscapes, and defensive strategies for operational technology environments.
+
+| Course | Hours | CEUs | Completed | Source |
+|---|---|---|---|---|
+| 210W-01: Differences in Deployments of Industrial Control Systems (R4) | 1h 40m | 0.20 | 06/17/2026 | [PDF](./2026-06-17_210W-01-ics-deployments.pdf) |
+| 210W-02: Influence of IT Components on Industrial Control Systems (R3) | 1h | 0.10 | 04/22/2026 | [PDF](./2026-04-22_210W-02-it-on-ics.pdf) |
+
+*Note: This section is updated continuously as additional modules in the 210W catalog are completed.*
+
+### Additional OT/ICS & Cybersecurity Training
+
+| Course | Provider | Hours | Completed | Source |
+|---|---|---|---|---|
+| ChemLock: Security Awareness Training | CISA | 1h | 06/25/2026 | [PDF](./2026-06-25_chemlock-security-awareness.pdf) |
+| Introduction to Cybersecurity for Water and Wastewater Systems | TEEX | 4h | 12/19/2025 | [PDF](./2025-12-19_teex-cyber-water-wastewater.pdf) |
+| Cybersecurity in the Workplace | TEEX | 2h | 11/28/2025 | [PDF](./2025-11-28_teex-cyber-workplace.pdf) |
+| Getting Started in OT/ICS Cybersecurity *(Free Preview)* | — | 1 CPE | 06/01/2026 | [PDF](./2026-06-01_getting-started-ot-ics-preview.pdf) |
+
+---
+
+## TCEQ-Approved Continuing Education
+
+*24 completed courses · 324 total CE hours · spans 2011–2026*
+
+All courses are approved by the Texas Commission on Environmental Quality (TCEQ) and are verifiable through official Texas Drinking Water Operator Certification public records. Course codes correspond directly to TCEQ's official course catalog.
+
+### TEEX ITSI (Texas A&M Engineering Extension Service)
+
+| Date | Course | Hours | Applies To | Code |
+|------|--------|-------|-----------|------|
+| 12/19/2025 | Introduction to Cybersecurity Fundamentals *(incl. Resiliency)* | 4.0 | Water, Wastewater | 1812 |
+| 07/25/2025 | Introduction to Membrane Technology | 8.0 | Water, Wastewater | 667 |
+| 03/26/2025 | CSI/CCC (Customer Service Inspection, Backflow Prevention & Water) | 16.0 | Water, Backflow Prevention, Customer Service Insp. | 1415 |
+| 06/09/2023 | Wastewater Treatment | 20.0 | Wastewater | 437 |
+| 06/09/2021 | Water Laboratory | 20.0 | Water | 285 |
+| 11/01/2012 | Groundwater Production | 20.0 | Water | 223 |
+
+### TWUA (Texas Water Utilities Association)
+
+| Date | Course | Hours | Applies To | Code |
+|------|--------|-------|-----------|------|
+| 02/15/2024 | Resiliency Overview (Water/Wastewater) | 2.0 | Water, Wastewater | 1664 |
+| 11/18/2021 | Water Utility Calculations – Live Online | 20.0 | Water, Wastewater | 1329 |
+| 04/29/2021 | Customer Service Inspection | 10.0 | Water, Backflow Prevention, Customer Service Insp. | 1336 |
+| 04/29/2021 | 10-Hr Cross-Connection Control | 10.0 | Water, Wastewater, Backflow Prevention, Customer Service Insp., Laboratory, Water Treatment Specialist | 1343 |
+| 08/27/2020 | Core Water Distribution | 20.0 | Water | 1293 |
+| 03/30/2016 | Customer Service Inspection | 10.0 | Water, Backflow Prevention, Customer Service Insp. | 1336 |
+
+### TRWA (Texas Rural Water Association)
+
+| Date | Course | Hours | Applies To | Code |
+|------|--------|-------|-----------|------|
+| 05/26/2025 | Introduction to Water Sources *(incl. practical skills)* | 4.0 | Water | 1388 |
+| 12/12/2019 | Water Utility Management | 20.0 | Water, Wastewater | 550 |
+| 04/11/2019 | Surface Water Production II | 20.0 | Water | 954 |
+| 03/14/2019 | Surface Water Production I | 24.0 | Water | 942 |
+| 12/22/2018 | Pump & Motor Maintenance – Online | 20.0 | Water, Wastewater | 397 |
+| 04/27/2016 | Chlorinator Systems & Chemical Handling | 20.0 | Water, Wastewater | 1133 |
+| 03/03/2013 | Water Utility Safety – Online | 8.0 | Water, Wastewater, On-Site Sewage | 1132 |
+| 05/01/2011 | Basic Waterworks Operation | 20.0 | Water | 92 |
+| 02/17/2011 | EPA Water Workshop | 4.0 | Water | 315 |
+
+### TECS
+
+| Date | Course | Hours | Applies To | Code |
+|------|--------|-------|-----------|------|
+| 06/11/2026 | Safety Shorts – Safety Awareness *(incl. Resiliency)* | 2.0 | Water, Wastewater, Backflow Prevention, Customer Service Insp., Laboratory, On-Site Sewage | 1752 |
+| 10/15/2025 | Safety Shorts – Safety Awareness *(incl. Resiliency)* | 2.0 | Water, Wastewater, Backflow Prevention, Customer Service Insp., Laboratory, On-Site Sewage | 1752 |
+| 09/15/2017 | Basic Wastewater Operations | 20.0 | Wastewater | 59 |
+
+*Historical continuing education data is aggregated from official TCEQ central registry transcripts. Individual digital certificates are attached to modern cybersecurity and technical training modules where available.*
